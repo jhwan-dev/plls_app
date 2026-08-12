@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { put } from "@vercel/blob";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -11,10 +12,31 @@ const ALLOWED_TYPES: Record<string, string> = {
   "image/webp": "webp",
 };
 
-// Stored on the server's local disk under public/uploads/avatars — fine for
-// this single-server dev setup, but won't survive a serverless/edge deploy
-// (Vercel etc.) without swapping this for real object storage (S3, Vercel
-// Blob, ...) later.
+// On Vercel (serverless — no writable/persistent local disk) this uploads to
+// Vercel Blob. In local dev, where BLOB_READ_WRITE_TOKEN isn't set up, it
+// falls back to writing under public/uploads/avatars instead.
+async function saveAvatar(
+  userId: string,
+  extension: string,
+  contentType: string,
+  buffer: Buffer,
+): Promise<string> {
+  const filename = `${userId}-${Date.now()}.${extension}`;
+
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const blob = await put(`avatars/${filename}`, buffer, {
+      access: "public",
+      contentType,
+    });
+    return blob.url;
+  }
+
+  const uploadsDir = path.join(process.cwd(), "public", "uploads", "avatars");
+  await mkdir(uploadsDir, { recursive: true });
+  await writeFile(path.join(uploadsDir, filename), buffer);
+  return `/uploads/avatars/${filename}`;
+}
+
 export async function POST(request: Request) {
   const session = await auth();
 
@@ -42,14 +64,9 @@ export async function POST(request: Request) {
   }
 
   try {
-    const uploadsDir = path.join(process.cwd(), "public", "uploads", "avatars");
-    await mkdir(uploadsDir, { recursive: true });
-
-    const filename = `${session.user.id}-${Date.now()}.${extension}`;
     const buffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(path.join(uploadsDir, filename), buffer);
+    const imageUrl = await saveAvatar(session.user.id, extension, file.type, buffer);
 
-    const imageUrl = `/uploads/avatars/${filename}`;
     await prisma.user.update({
       where: { id: session.user.id },
       data: { image: imageUrl },

@@ -52,7 +52,7 @@ export function SplashScreen() {
     <div
       aria-hidden="true"
       className={cn(
-        "fixed inset-0 z-[100] flex flex-col items-center justify-center gap-5 bg-[#111111] transition-opacity duration-300 motion-reduce:transition-none",
+        "fixed inset-0 z-[100] flex flex-col items-center justify-center gap-5 bg-background transition-opacity duration-300 motion-reduce:transition-none",
         stage === "out" ? "opacity-0" : "opacity-100",
       )}
     >
