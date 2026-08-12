@@ -1,0 +1,178 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Playlist {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  // Free-text genre, only ever set when the owner is a curator (see
+  // User.isCurator) — surfaced on the Curator's PLLS page.
+  genre       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tracks PlaylistTrack[]
+  likes  Like[]
+
+  // Nullable so playlists created before login existed (or by a since-deleted
+  // user, see onDelete below) keep working — but the API requires a session
+  // to create new ones going forward.
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId String?
+
+  @@index([userId])
+  @@map("playlists")
+}
+
+/// Deezer track data is snapshotted at add-time (title/artist/album/cover/
+/// preview/duration) so a playlist keeps rendering correctly even if the
+/// track is later removed or changed upstream on Deezer.
+model PlaylistTrack {
+  id       String @id @default(cuid())
+  position Int
+
+  // Deezer reference (not unique — the same track may be added more than
+  // once to a playlist, e.g. an intro repeated later in the set). BigInt
+  // because some Deezer track ids exceed Postgres' 32-bit Int range.
+  deezerTrackId BigInt
+
+  // Snapshot fields captured from the Deezer API response at add-time.
+  title      String
+  artist     String
+  album      String
+  coverUrl   String
+  previewUrl String
+  duration   Int
+
+  createdAt DateTime @default(now())
+
+  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  playlistId String
+
+  @@index([playlistId, position])
+  @@map("playlist_tracks")
+}
+
+/// One row per (user, playlist) like. The unique constraint below is what
+/// actually stops a user's repeated clicks from inflating the count — the
+/// like count is always derived with COUNT(*) over this table, never a
+/// manually incremented column, so it can't drift or double-count.
+model Like {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  playlistId String
+
+  @@unique([userId, playlistId])
+  @@index([playlistId])
+  @@map("likes")
+}
+
+// --- Auth.js (next-auth v5) models — schema shape is fixed by @auth/prisma-adapter ---
+
+model User {
+  id            String    @id @default(cuid())
+  // Raw Google profile name — kept only for Auth.js account-creation
+  // compatibility. Never shown once `nickname` is set; see displayName().
+  name          String?
+  // User-chosen, unique, editable in profile settings. Null until the user
+  // completes onboarding (see auth.ts `pages.newUser`) or an existing
+  // account sets one for the first time.
+  nickname      String?   @unique
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+
+  accounts  Account[]
+  sessions  Session[]
+  playlists Playlist[]
+  likes     Like[]
+
+  // Follow rows where this user is the one doing the following.
+  following Follow[] @relation("FollowFollower")
+  // Follow rows where this user is being followed.
+  followers Follow[] @relation("FollowFollowing")
+
+  // Manually granted (no self-serve UI) — a curator's playlists appear on
+  // the Curator's PLLS page and may carry a genre.
+  isCurator Boolean @default(false)
+
+  // Only meaningful when isCurator is true. Determines which section of the
+  // Curator Zone page (/curator-zone) a curator's playlists are grouped
+  // under — artist, physical place (bar/venue), or individual curator/DJ.
+  curatorType CuratorType?
+
+  @@map("users")
+}
+
+enum CuratorType {
+  ARTIST
+  PLACE
+  CURATOR
+}
+
+/// Same dedup pattern as Like: a unique (followerId, followingId) constraint
+/// is what actually prevents duplicate follows, not application logic alone.
+model Follow {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  follower    User   @relation("FollowFollower", fields: [followerId], references: [id], onDelete: Cascade)
+  followerId  String
+  following   User   @relation("FollowFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+  followingId String
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@map("follows")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
