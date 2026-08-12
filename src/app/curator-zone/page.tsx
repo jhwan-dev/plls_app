@@ -10,24 +10,21 @@ export const metadata: Metadata = {
   description: "아티스트, 플레이스, 큐레이터가 선별한 플레이리스트를 만나보세요.",
 };
 
-const SECTIONS: { type: CuratorType; label: string; description: string; emptyMessage: string }[] = [
+const SECTIONS: { type: CuratorType; label: string; emptyMessage: string }[] = [
   {
-    type: "ARTIST",
-    label: "Artist",
-    description: "아티스트가 만든 플레이리스트",
-    emptyMessage: "아직 소개된 아티스트 플레이리스트가 없어요.",
+    type: "CURATOR",
+    label: "Curator",
+    emptyMessage: "아직 소개된 큐레이터 플레이리스트가 없어요.",
   },
   {
     type: "PLACE",
     label: "Place",
-    description: "바, 공간이 만든 플레이리스트",
     emptyMessage: "아직 소개된 플레이스 플레이리스트가 없어요.",
   },
   {
-    type: "CURATOR",
-    label: "Curator",
-    description: "큐레이터가 만든 플레이리스트",
-    emptyMessage: "아직 소개된 큐레이터 플레이리스트가 없어요.",
+    type: "ARTIST",
+    label: "Artist",
+    emptyMessage: "아직 소개된 아티스트 플레이리스트가 없어요.",
   },
 ];
 
@@ -51,9 +48,8 @@ export default async function CuratorZonePage() {
         const playlists = groups[section.type];
         return (
           <div key={section.type} className="flex flex-col gap-4">
-            <div className="flex items-baseline justify-between gap-4 border-b border-border pb-3">
+            <div className="border-b border-border pb-3">
               <h2 className="font-display text-2xl tracking-tight text-foreground">{section.label}</h2>
-              <span className="font-mono text-[11px] text-muted-foreground">{section.description}</span>
             </div>
 
             {playlists.length === 0 ? (
