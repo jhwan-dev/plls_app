@@ -1,4 +1,6 @@
-import { forwardRef } from "react";
+"use client";
+
+import { forwardRef, useEffect, useState } from "react";
 
 interface StoryCardTrack {
   title: string;
@@ -13,6 +15,75 @@ interface StoryCardProps {
   tracks: StoryCardTrack[];
 }
 
+type WordmarkTone = "blue" | "white" | "black";
+
+const WORDMARK_SRC: Record<WordmarkTone, string> = {
+  blue: "/brand/plls-wordmark.png",
+  white: "/brand/plls-wordmark-white.png",
+  black: "/brand/plls-wordmark-black.png",
+};
+
+// Cobalt's own perceptual luminance (~85/255) — the reference point for
+// deciding whether it'll actually stand out against the card background.
+const COBALT_LUMINANCE = 85;
+
+/**
+ * Samples the background exactly as it's actually composited behind the
+ * wordmark (source cover → blur(80px) brightness(0.55) → the dark gradient
+ * overlay, evaluated near the top of the card where the logo sits) and picks
+ * whichever wordmark tone will actually read against it: the brand blue by
+ * default, falling back to white/black only where blue's contrast is too low.
+ */
+function useWordmarkTone(coverUrl: string | undefined): WordmarkTone {
+  const [tone, setTone] = useState<WordmarkTone>("white");
+
+  useEffect(() => {
+    if (!coverUrl) return;
+    let cancelled = false;
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      if (cancelled) return;
+      const canvas = document.createElement("canvas");
+      canvas.width = 16;
+      canvas.height = 16;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.drawImage(img, 0, 0, 16, 16);
+
+      let sum = 0;
+      const { data } = ctx.getImageData(0, 0, 16, 16);
+      for (let i = 0; i < data.length; i += 4) {
+        sum += 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+      }
+      const rawLuminance = sum / (data.length / 4);
+
+      // Approximates the CSS treatment: brightness(0.55), then blended with
+      // the gradient overlay's ~55% opaque near-black at the card's top.
+      const afterBrightness = rawLuminance * 0.55;
+      const finalLuminance = afterBrightness * (1 - 0.55) + 15 * 0.55;
+
+      if (cancelled) return;
+      if (Math.abs(finalLuminance - COBALT_LUMINANCE) > 60) {
+        setTone("blue");
+      } else {
+        setTone(finalLuminance < 128 ? "white" : "black");
+      }
+    };
+    img.onerror = () => {
+      if (!cancelled) setTone("white");
+    };
+    img.src = coverUrl;
+
+    return () => {
+      cancelled = true;
+    };
+  }, [coverUrl]);
+
+  return tone;
+}
+
 // Rendered off-screen at a fixed 1080x1920 (Instagram Story's 9:16) and
 // rasterized via html-to-image — see instagram-story-share-button.tsx. Sized
 // with inline pixel styles rather than Tailwind classes so the captured
@@ -23,6 +94,7 @@ export const StoryCard = forwardRef<HTMLDivElement, StoryCardProps>(function Sto
 ) {
   const covers = coverUrls.slice(0, 4);
   const topTracks = tracks.slice(0, 4);
+  const wordmarkTone = useWordmarkTone(covers[0]);
 
   return (
     <div
@@ -76,8 +148,7 @@ export const StoryCard = forwardRef<HTMLDivElement, StoryCardProps>(function Sto
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element -- captured via html-to-image, not next/image */}
-        <img src="/brand/plls-wordmark.png" alt="PLLS" style={{ width: 320, height: "auto" }} />
-
+        <img src={WORDMARK_SRC[wordmarkTone]} alt="PLLS" style={{ width: 320, height: "auto" }} />
 
         <div
           style={{
