@@ -7,6 +7,24 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import { StoryCard } from "@/components/playlist/story-card";
 
+// The wordmark's src can still be mid-swap (the tone-detection effect in
+// StoryCard resolves asynchronously) when the user taps share — capturing
+// before it settles can rasterize a stale or half-loaded image. Wait for
+// every <img> in the card to actually finish loading first.
+async function waitForImages(container: HTMLElement) {
+  const imgs = Array.from(container.querySelectorAll("img"));
+  await Promise.all(
+    imgs.map((img) =>
+      img.complete
+        ? Promise.resolve()
+        : new Promise<void>((resolve) => {
+            img.addEventListener("load", () => resolve(), { once: true });
+            img.addEventListener("error", () => resolve(), { once: true });
+          }),
+    ),
+  );
+}
+
 interface InstagramStoryShareButtonProps {
   playlistId: string;
   title: string;
@@ -28,6 +46,7 @@ export function InstagramStoryShareButton({
     setIsGenerating(true);
 
     try {
+      await waitForImages(cardRef.current);
       const dataUrl = await toPng(cardRef.current, {
         width: 1080,
         height: 1920,
