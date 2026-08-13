@@ -107,6 +107,12 @@ export const StoryCard = forwardRef<HTMLDivElement, StoryCardProps>(function Sto
         backgroundColor: "#0f172a",
         fontFamily: "var(--font-geist-sans), Arial, sans-serif",
         color: "#ffffff",
+        // text-align is inherited — the button that mounts this off-screen
+        // card lives inside the visible page's "text-center sm:text-left"
+        // header block, so on a narrow (phone) viewport that centering
+        // leaked in here too. Pin it so this card never depends on
+        // whatever happens to be above it in the page.
+        textAlign: "left",
       }}
     >
       {covers[0] && (
