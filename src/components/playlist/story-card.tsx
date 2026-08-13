@@ -147,8 +147,12 @@ export const StoryCard = forwardRef<HTMLDivElement, StoryCardProps>(function Sto
           padding: "0 96px",
         }}
       >
+        {/* html-to-image's SVG-based rasterizer can resolve height:"auto" to
+            0 even when the image itself has already loaded — needs a
+            concrete pixel height, not an intrinsic one, to capture
+            reliably. 320 / (1267/405), the wordmark's real aspect ratio. */}
         {/* eslint-disable-next-line @next/next/no-img-element -- captured via html-to-image, not next/image */}
-        <img src={WORDMARK_SRC[wordmarkTone]} alt="PLLS" style={{ width: 320, height: "auto" }} />
+        <img src={WORDMARK_SRC[wordmarkTone]} alt="PLLS" style={{ width: 320, height: 102 }} />
 
         <div
           style={{
