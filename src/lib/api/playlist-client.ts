@@ -39,3 +39,29 @@ export async function deletePlaylist(id: string): Promise<void> {
   const response = await fetch(`/api/playlists/${id}`, { method: "DELETE" });
   await parseJsonResponse<null>(response);
 }
+
+interface UpdatePlaylistPayload {
+  title: string;
+  tracks: DraftTrack[];
+}
+
+export async function updatePlaylist(id: string, payload: UpdatePlaylistPayload): Promise<void> {
+  const response = await fetch(`/api/playlists/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      title: payload.title,
+      tracks: payload.tracks.map((track) => ({
+        deezerTrackId: track.deezerTrackId,
+        title: track.title,
+        artist: track.artist,
+        album: track.album,
+        coverUrl: track.coverUrl,
+        previewUrl: track.previewUrl,
+        duration: track.duration,
+      })),
+    }),
+  });
+
+  await parseJsonResponse<{ title: string; description: string | null }>(response);
+}

@@ -33,14 +33,29 @@ export const createPlaylistSchema = z.object({
 
 export type CreatePlaylistInput = z.infer<typeof createPlaylistSchema>;
 
-export const updatePlaylistDescriptionSchema = z.object({
-  // Unlike create, empty string here means "clear the description" (-> null),
-  // not "field omitted" — so it maps to null instead of undefined.
+// All fields optional — the PATCH route applies whichever are present, so
+// EditableDescription (description only) and the title/track-list editor
+// (title + tracks) can share one endpoint without stepping on each other.
+export const updatePlaylistSchema = z.object({
+  title: z
+    .string()
+    .trim()
+    .min(1, "제목을 입력해 주세요.")
+    .max(200, "제목이 너무 길어요.")
+    .optional(),
+  // Unlike create, an empty string here means "clear the description"
+  // (-> null), not "field omitted" — omission is what .optional() catches;
+  // an empty *value* still runs the transform below.
   description: z
     .string()
     .trim()
     .max(1000, "설명이 너무 길어요.")
-    .transform((value) => (value ? value : null)),
+    .optional()
+    .transform((value) => (value === undefined ? undefined : value ? value : null)),
+  tracks: z
+    .array(playlistTrackInputSchema)
+    .min(1, "최소 1개 이상의 트랙이 있어야 해요.")
+    .optional(),
 });
 
-export type UpdatePlaylistDescriptionInput = z.infer<typeof updatePlaylistDescriptionSchema>;
+export type UpdatePlaylistInput = z.infer<typeof updatePlaylistSchema>;

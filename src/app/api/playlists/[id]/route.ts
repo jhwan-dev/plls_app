@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { updatePlaylistDescriptionSchema } from "@/lib/validations/playlist";
+import { updatePlaylistSchema } from "@/lib/validations/playlist";
 
 export async function PATCH(request: Request, { params }: RouteContext<"/api/playlists/[id]">) {
   const session = await auth();
@@ -28,7 +28,7 @@ export async function PATCH(request: Request, { params }: RouteContext<"/api/pla
     return NextResponse.json({ error: "요청 본문을 읽을 수 없습니다." }, { status: 400 });
   }
 
-  const parsed = updatePlaylistDescriptionSchema.safeParse(json);
+  const parsed = updatePlaylistSchema.safeParse(json);
 
   if (!parsed.success) {
     return NextResponse.json(
@@ -37,16 +37,44 @@ export async function PATCH(request: Request, { params }: RouteContext<"/api/pla
     );
   }
 
+  const { title, description, tracks } = parsed.data;
+
   try {
-    const updated = await prisma.playlist.update({
-      where: { id },
-      data: { description: parsed.data.description },
-      select: { description: true },
+    const updated = await prisma.$transaction(async (tx) => {
+      // Full replace, not a diff — simplest way to apply add/remove/reorder
+      // together in one write. Track ids aren't referenced anywhere else
+      // (Like points at Playlist, not PlaylistTrack), so this is safe.
+      if (tracks) {
+        await tx.playlistTrack.deleteMany({ where: { playlistId: id } });
+      }
+
+      return tx.playlist.update({
+        where: { id },
+        data: {
+          ...(title !== undefined && { title }),
+          ...(description !== undefined && { description }),
+          ...(tracks && {
+            tracks: {
+              create: tracks.map((track, index) => ({
+                position: index,
+                deezerTrackId: BigInt(track.deezerTrackId),
+                title: track.title,
+                artist: track.artist,
+                album: track.album,
+                coverUrl: track.coverUrl,
+                previewUrl: track.previewUrl,
+                duration: track.duration,
+              })),
+            },
+          }),
+        },
+        select: { title: true, description: true },
+      });
     });
 
-    return NextResponse.json({ description: updated.description });
+    return NextResponse.json(updated);
   } catch (error) {
-    console.error("Failed to update playlist description:", error);
+    console.error("Failed to update playlist:", error);
     return NextResponse.json(
       { error: "플레이리스트 수정 중 오류가 발생했습니다." },
       { status: 500 },
