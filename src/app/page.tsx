@@ -5,6 +5,7 @@ import {
   getFollowingPlaylists,
   getHottestPlaylists,
   getLikedPlaylistIds,
+  getRecentPlaylists,
   getWeeklyHypePlaylists,
 } from "@/lib/discover";
 import { DiscoverFeed, type FeedPlaylist, type FeedSection } from "@/components/discover/discover-feed";
@@ -28,11 +29,12 @@ export default async function Home() {
   const session = await auth();
   const userId = session?.user?.id;
 
-  const [following, weeklyHype, hottest, curated] = await Promise.all([
+  const [following, weeklyHype, hottest, curated, recent] = await Promise.all([
     userId ? getFollowingPlaylists(userId) : Promise.resolve([]),
     getWeeklyHypePlaylists(),
     getHottestPlaylists(),
     getCuratedPlaylists(),
+    getRecentPlaylists(),
   ]);
 
   const allIds = [
@@ -40,6 +42,7 @@ export default async function Home() {
     ...weeklyHype.map((p) => p.id),
     ...hottest.map((p) => p.id),
     ...curated.map((p) => p.id),
+    ...recent.map((p) => p.id),
   ];
   const likedIds = userId ? await getLikedPlaylistIds(userId, allIds) : new Set<string>();
 
@@ -62,6 +65,13 @@ export default async function Home() {
       emptyMessage: "아직 추천할 플레이리스트가 없어요.",
       items: featuredPick ? [toFeedPlaylist(featuredPick)] : [],
       accent: true,
+    },
+    {
+      key: "latest",
+      label: "Latest",
+      description: "새로 올라온 플레이리스트",
+      emptyMessage: "아직 새로 올라온 플레이리스트가 없어요.",
+      items: recent.slice(0, SECTION_PREVIEW_LIMIT).map(toFeedPlaylist),
     },
     {
       key: "hottest",
