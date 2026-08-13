@@ -71,7 +71,7 @@ export function SplashScreen() {
           "relative h-7 w-auto transition-opacity duration-500 motion-reduce:transition-none",
           stage === "mark" ? "opacity-0" : "opacity-100",
         )}
-        style={{ aspectRatio: "843 / 257" }}
+        style={{ aspectRatio: "1267 / 405" }}
       >
         <Image src="/brand/plls-wordmark.png" alt="PLLS" fill sizes="184px" className="object-contain" />
       </span>

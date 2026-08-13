@@ -10,7 +10,7 @@ interface LogoProps {
 
 // Intrinsic size of public/brand/plls-wordmark.png — sets the aspect-ratio
 // so the image is never squished or cropped at whatever height it's shown.
-const WORDMARK_RATIO = "843 / 257";
+const WORDMARK_RATIO = "1267 / 405";
 
 /** The header brand button — the real PLLS wordmark asset only. The "P"
  * symbol is a separate, deliberately rare accent (see BrandMark) and isn't
