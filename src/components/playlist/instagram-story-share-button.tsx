@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import { StoryCard } from "@/components/playlist/story-card";
 
-// The wordmark's src can still be mid-swap (the tone-detection effect in
-// StoryCard resolves asynchronously) when the user taps share — capturing
-// before it settles can rasterize a stale or half-loaded image. Wait for
-// every <img> in the card to actually finish loading first.
+// Cover art can still be loading when the user taps share — capturing
+// before it settles can rasterize a blank frame. Wait for every <img> in
+// the card to actually finish loading first. (The wordmark is plain text,
+// not an image, so it's never part of this wait.)
 async function waitForImages(container: HTMLElement) {
   const imgs = Array.from(container.querySelectorAll("img"));
   await Promise.all(
@@ -23,26 +23,6 @@ async function waitForImages(container: HTMLElement) {
           }),
     ),
   );
-}
-
-// StoryCard doesn't render the wordmark <img> at all until it has a
-// pre-baked data: URI ready (see useWordmarkDataUrl) — so waitForImages
-// above can run before that element even exists yet. Poll for it
-// separately, with a hard cap so a share never hangs indefinitely if
-// something upstream genuinely fails.
-function waitForWordmark(container: HTMLElement, timeoutMs = 4000): Promise<void> {
-  return new Promise((resolve) => {
-    const deadline = Date.now() + timeoutMs;
-    function check() {
-      const img = container.querySelector('img[alt="PLLS"]');
-      if ((img && img.getAttribute("src")?.startsWith("data:")) || Date.now() > deadline) {
-        resolve();
-        return;
-      }
-      requestAnimationFrame(check);
-    }
-    check();
-  });
 }
 
 interface InstagramStoryShareButtonProps {
@@ -66,7 +46,6 @@ export function InstagramStoryShareButton({
     setIsGenerating(true);
 
     try {
-      await waitForWordmark(cardRef.current);
       await waitForImages(cardRef.current);
       const dataUrl = await toPng(cardRef.current, {
         width: 1080,
