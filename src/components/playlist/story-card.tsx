@@ -27,61 +27,91 @@ const WORDMARK_SRC: Record<WordmarkTone, string> = {
 // deciding whether it'll actually stand out against the card background.
 const COBALT_LUMINANCE = 85;
 
+function sampleTone(coverImg: HTMLImageElement): WordmarkTone {
+  const canvas = document.createElement("canvas");
+  canvas.width = 16;
+  canvas.height = 16;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return "white";
+  ctx.drawImage(coverImg, 0, 0, 16, 16);
+
+  let sum = 0;
+  const { data } = ctx.getImageData(0, 0, 16, 16);
+  for (let i = 0; i < data.length; i += 4) {
+    sum += 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+  }
+  const rawLuminance = sum / (data.length / 4);
+
+  // Approximates the CSS treatment: brightness(0.55), then blended with the
+  // gradient overlay's ~55% opaque near-black at the card's top.
+  const afterBrightness = rawLuminance * 0.55;
+  const finalLuminance = afterBrightness * (1 - 0.55) + 15 * 0.55;
+
+  if (Math.abs(finalLuminance - COBALT_LUMINANCE) > 60) return "blue";
+  return finalLuminance < 128 ? "white" : "black";
+}
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
 /**
  * Samples the background exactly as it's actually composited behind the
  * wordmark (source cover → blur(80px) brightness(0.55) → the dark gradient
- * overlay, evaluated near the top of the card where the logo sits) and picks
- * whichever wordmark tone will actually read against it: the brand blue by
- * default, falling back to white/black only where blue's contrast is too low.
+ * overlay, evaluated near the top of the card where the logo sits), picks
+ * whichever wordmark tone will actually read against it — the brand blue by
+ * default, falling back to white/black only where blue's contrast is too
+ * low — and returns it pre-baked as a data: URI. html-to-image's own
+ * image-fetching step has proven unreliable for this asset in practice
+ * (loaded, correctly sized, still rasterized blank); handing it an
+ * already-self-contained data URI leaves nothing for that step to do.
  */
-function useWordmarkTone(coverUrl: string | undefined): WordmarkTone {
-  const [tone, setTone] = useState<WordmarkTone>("white");
+function useWordmarkDataUrl(coverUrl: string | undefined): string | null {
+  const [dataUrl, setDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!coverUrl) return;
     let cancelled = false;
 
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => {
-      if (cancelled) return;
-      const canvas = document.createElement("canvas");
-      canvas.width = 16;
-      canvas.height = 16;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-      ctx.drawImage(img, 0, 0, 16, 16);
-
-      let sum = 0;
-      const { data } = ctx.getImageData(0, 0, 16, 16);
-      for (let i = 0; i < data.length; i += 4) {
-        sum += 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+    async function resolve() {
+      let tone: WordmarkTone = "white";
+      if (coverUrl) {
+        try {
+          const coverImg = await loadImage(coverUrl);
+          tone = sampleTone(coverImg);
+        } catch {
+          tone = "white";
+        }
       }
-      const rawLuminance = sum / (data.length / 4);
-
-      // Approximates the CSS treatment: brightness(0.55), then blended with
-      // the gradient overlay's ~55% opaque near-black at the card's top.
-      const afterBrightness = rawLuminance * 0.55;
-      const finalLuminance = afterBrightness * (1 - 0.55) + 15 * 0.55;
-
       if (cancelled) return;
-      if (Math.abs(finalLuminance - COBALT_LUMINANCE) > 60) {
-        setTone("blue");
-      } else {
-        setTone(finalLuminance < 128 ? "white" : "black");
-      }
-    };
-    img.onerror = () => {
-      if (!cancelled) setTone("white");
-    };
-    img.src = coverUrl;
 
+      try {
+        const wordmarkImg = await loadImage(WORDMARK_SRC[tone]);
+        if (cancelled) return;
+        const canvas = document.createElement("canvas");
+        canvas.width = wordmarkImg.naturalWidth;
+        canvas.height = wordmarkImg.naturalHeight;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.drawImage(wordmarkImg, 0, 0);
+        if (!cancelled) setDataUrl(canvas.toDataURL("image/png"));
+      } catch {
+        // Leave dataUrl null — no wordmark rather than a broken image icon.
+      }
+    }
+
+    resolve();
     return () => {
       cancelled = true;
     };
   }, [coverUrl]);
 
-  return tone;
+  return dataUrl;
 }
 
 // Rendered off-screen at a fixed 1080x1920 (Instagram Story's 9:16) and
@@ -94,7 +124,7 @@ export const StoryCard = forwardRef<HTMLDivElement, StoryCardProps>(function Sto
 ) {
   const covers = coverUrls.slice(0, 4);
   const topTracks = tracks.slice(0, 4);
-  const wordmarkTone = useWordmarkTone(covers[0]);
+  const wordmarkDataUrl = useWordmarkDataUrl(covers[0]);
 
   return (
     <div
@@ -147,12 +177,10 @@ export const StoryCard = forwardRef<HTMLDivElement, StoryCardProps>(function Sto
           padding: "0 96px",
         }}
       >
-        {/* html-to-image's SVG-based rasterizer can resolve height:"auto" to
-            0 even when the image itself has already loaded — needs a
-            concrete pixel height, not an intrinsic one, to capture
-            reliably. 320 / (1267/405), the wordmark's real aspect ratio. */}
-        {/* eslint-disable-next-line @next/next/no-img-element -- captured via html-to-image, not next/image */}
-        <img src={WORDMARK_SRC[wordmarkTone]} alt="PLLS" style={{ width: 320, height: 102 }} />
+        {wordmarkDataUrl && (
+          // eslint-disable-next-line @next/next/no-img-element -- captured via html-to-image, not next/image
+          <img src={wordmarkDataUrl} alt="PLLS" style={{ width: 320, height: 102 }} />
+        )}
 
         <div
           style={{

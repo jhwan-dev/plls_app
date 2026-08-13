@@ -25,6 +25,26 @@ async function waitForImages(container: HTMLElement) {
   );
 }
 
+// StoryCard doesn't render the wordmark <img> at all until it has a
+// pre-baked data: URI ready (see useWordmarkDataUrl) — so waitForImages
+// above can run before that element even exists yet. Poll for it
+// separately, with a hard cap so a share never hangs indefinitely if
+// something upstream genuinely fails.
+function waitForWordmark(container: HTMLElement, timeoutMs = 4000): Promise<void> {
+  return new Promise((resolve) => {
+    const deadline = Date.now() + timeoutMs;
+    function check() {
+      const img = container.querySelector('img[alt="PLLS"]');
+      if ((img && img.getAttribute("src")?.startsWith("data:")) || Date.now() > deadline) {
+        resolve();
+        return;
+      }
+      requestAnimationFrame(check);
+    }
+    check();
+  });
+}
+
 interface InstagramStoryShareButtonProps {
   playlistId: string;
   title: string;
@@ -46,6 +66,7 @@ export function InstagramStoryShareButton({
     setIsGenerating(true);
 
     try {
+      await waitForWordmark(cardRef.current);
       await waitForImages(cardRef.current);
       const dataUrl = await toPng(cardRef.current, {
         width: 1080,
