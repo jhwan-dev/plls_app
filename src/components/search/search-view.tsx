@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SearchBar } from "@/components/search/search-bar";
 import { SearchResults } from "@/components/search/search-results";
-import { getChartTracks, searchTracks } from "@/lib/api/deezer-client";
+import { getTrendingTracks, searchTracks } from "@/lib/api/itunes-client";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { usePlaylistDraftStore } from "@/store/playlist-draft-store";
 
@@ -21,21 +21,19 @@ export function SearchView() {
     isError,
     error,
   } = useQuery({
-    queryKey: ["deezer-search", debouncedQuery],
+    queryKey: ["itunes-search", debouncedQuery],
     queryFn: () => searchTracks(debouncedQuery),
     enabled: hasQuery,
     placeholderData: (previousData) => previousData,
   });
 
   // Fills the empty state before a search with something to browse, instead
-  // of a blank "type something" prompt.
-  const { data: chartData, isLoading: isChartLoading } = useQuery({
-    queryKey: ["deezer-chart"],
-    queryFn: getChartTracks,
+  // of a blank "type something" prompt — backed by PLLS's own most-added
+  // tracks rather than an external trending API.
+  const { data: trendingData, isLoading: isTrendingLoading } = useQuery({
+    queryKey: ["trending-tracks"],
+    queryFn: getTrendingTracks,
     enabled: !hasQuery,
-    // Kept short (not the usual long "chart barely changes" cache) because
-    // each track's preview URL is a short-lived signed link from Deezer —
-    // holding onto this response too long serves 403s on play.
     staleTime: 5 * 60 * 1000,
   });
 
@@ -50,14 +48,14 @@ export function SearchView() {
       <SearchBar value={query} onChange={setQuery} />
 
       <SearchResults
-        tracks={data?.data ?? []}
+        tracks={data ?? []}
         isLoading={isLoading || (isFetching && !data)}
         isError={isError}
         errorMessage={error instanceof Error ? error.message : undefined}
         hasQuery={hasQuery}
         onAddTrack={addTrack}
-        chartTracks={chartData?.data ?? []}
-        isChartLoading={isChartLoading}
+        trendingTracks={trendingData ?? []}
+        isTrendingLoading={isTrendingLoading}
       />
     </div>
   );

@@ -93,7 +93,8 @@ export default async function ProfilePage({ params }: PageProps<"/profile/[id]">
         playlists={profile.playlists.map((playlist) => ({
           id: playlist.id,
           title: playlist.title,
-          coverUrls: playlist.tracks.map((track) => track.coverUrl),
+          coverImageUrl: playlist.coverImageUrl,
+          tracks: playlist.tracks,
           likeCount: playlist._count.likes,
           initialLiked: likedIds.has(playlist.id),
         }))}

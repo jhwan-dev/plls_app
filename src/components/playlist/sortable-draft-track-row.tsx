@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { GradientTrackArt } from "@/components/track/gradient-track-art";
 import { formatDuration } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { DraftTrack } from "@/types/playlist";
@@ -48,9 +48,7 @@ export function SortableDraftTrackRow({ track, onRemove, disabled }: SortableDra
         <GripVertical className="size-4" />
       </button>
 
-      <div className="relative size-10 shrink-0 overflow-hidden rounded-md bg-muted">
-        <Image src={track.coverUrl} alt={track.album} fill sizes="40px" className="object-cover" />
-      </div>
+      <GradientTrackArt title={track.title} artist={track.artist} className="size-10 shrink-0 rounded-md" />
 
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm leading-tight font-semibold">{track.title}</p>

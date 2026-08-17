@@ -14,6 +14,10 @@ model Playlist {
   // Free-text genre, only ever set when the owner is a curator (see
   // User.isCurator) — surfaced on the Curator's PLLS page.
   genre       String?
+  // User-uploaded representative image (Vercel Blob URL). PLLS never fetches
+  // artwork from any music-data provider — when this is null, the UI falls
+  // back to a deterministic gradient derived from the playlist's tracks.
+  coverImageUrl String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -30,25 +34,30 @@ model Playlist {
   @@map("playlists")
 }
 
-/// Deezer track data is snapshotted at add-time (title/artist/album/cover/
-/// preview/duration) so a playlist keeps rendering correctly even if the
-/// track is later removed or changed upstream on Deezer.
+/// iTunes Search API text metadata is snapshotted at add-time (title/artist/
+/// album/duration) so a playlist keeps rendering correctly even if the track
+/// later changes or disappears upstream. No artwork or preview URL is ever
+/// stored — PLLS shows a deterministic gradient in place of album art and
+/// never plays audio in-app.
 model PlaylistTrack {
   id       String @id @default(cuid())
   position Int
 
-  // Deezer reference (not unique — the same track may be added more than
-  // once to a playlist, e.g. an intro repeated later in the set). BigInt
-  // because some Deezer track ids exceed Postgres' 32-bit Int range.
-  deezerTrackId BigInt
+  // iTunes trackId (not unique — the same track may be added more than once
+  // to a playlist, e.g. an intro repeated later in the set). Fits safely in
+  // a 32-bit Int, unlike some Deezer ids which needed BigInt.
+  itunesTrackId Int
 
-  // Snapshot fields captured from the Deezer API response at add-time.
-  title      String
-  artist     String
-  album      String
-  coverUrl   String
-  previewUrl String
-  duration   Int
+  // Snapshot fields captured from the iTunes Search API response at add-time.
+  title    String
+  artist   String
+  album    String
+  duration Int
+
+  // Resolved once at add-time via the YouTube Data API (see TrackLinkCache)
+  // and snapshotted here so playback linking never needs a join — either a
+  // direct video match, or a YouTube search-results link when none was found.
+  youtubeUrl String
 
   createdAt DateTime @default(now())
 
@@ -57,6 +66,22 @@ model PlaylistTrack {
 
   @@index([playlistId, position])
   @@map("playlist_tracks")
+}
+
+/// Global, track-level (not per-user/per-playlist) cache of YouTube Data API
+/// lookups — keyed by iTunes trackId so popular tracks converge on cache
+/// hits and the app's search-quota usage shrinks as the catalog of distinct
+/// tracks fills in, independent of how many playlists/users add them.
+model TrackLinkCache {
+  id            String   @id @default(cuid())
+  itunesTrackId Int      @unique
+  youtubeUrl    String?
+  resolved      Boolean  @default(false) // false also covers "looked up, no match" — caches misses too
+  lastCheckedAt DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  @@index([itunesTrackId])
+  @@map("track_link_cache")
 }
 
 /// One row per (user, playlist) like. The unique constraint below is what

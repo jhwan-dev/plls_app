@@ -21,12 +21,10 @@ export async function createPlaylist(payload: CreatePlaylistPayload): Promise<Cr
       description: payload.description,
       genre: payload.genre,
       tracks: payload.tracks.map((track) => ({
-        deezerTrackId: track.deezerTrackId,
+        itunesTrackId: track.itunesTrackId,
         title: track.title,
         artist: track.artist,
         album: track.album,
-        coverUrl: track.coverUrl,
-        previewUrl: track.previewUrl,
         duration: track.duration,
       })),
     }),
@@ -52,16 +50,31 @@ export async function updatePlaylist(id: string, payload: UpdatePlaylistPayload)
     body: JSON.stringify({
       title: payload.title,
       tracks: payload.tracks.map((track) => ({
-        deezerTrackId: track.deezerTrackId,
+        itunesTrackId: track.itunesTrackId,
         title: track.title,
         artist: track.artist,
         album: track.album,
-        coverUrl: track.coverUrl,
-        previewUrl: track.previewUrl,
         duration: track.duration,
       })),
     }),
   });
 
   await parseJsonResponse<{ title: string; description: string | null }>(response);
+}
+
+export async function updatePlaylistCover(id: string, file: File): Promise<{ coverImageUrl: string }> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(`/api/playlists/${id}/cover`, {
+    method: "POST",
+    body: formData,
+  });
+
+  return parseJsonResponse<{ coverImageUrl: string }>(response);
+}
+
+export async function removePlaylistCover(id: string): Promise<void> {
+  const response = await fetch(`/api/playlists/${id}/cover`, { method: "DELETE" });
+  await parseJsonResponse<null>(response);
 }

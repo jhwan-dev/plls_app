@@ -1,0 +1,115 @@
+"use client";
+
+import { useRef, useState, type ChangeEvent } from "react";
+import { Camera, Loader2, X } from "lucide-react";
+import { PlaylistCover } from "@/components/playlist/playlist-cover";
+import { updatePlaylistCover, removePlaylistCover } from "@/lib/api/playlist-client";
+import type { TrackSeed } from "@/lib/gradient";
+import { cn } from "@/lib/utils";
+
+interface PlaylistCoverEditorProps {
+  playlistId: string;
+  coverImageUrl: string | null;
+  onCoverChange: (coverImageUrl: string | null) => void;
+  tracks: TrackSeed[];
+  alt: string;
+  className?: string;
+}
+
+/** Cover art with an upload/remove overlay — only rendered while the
+ * playlist is in edit mode. Uploads take effect immediately, same as the
+ * profile avatar (see ProfileHeroCard), independent of the title/track
+ * draft's separate save/cancel flow. */
+export function PlaylistCoverEditor({
+  playlistId,
+  coverImageUrl,
+  onCoverChange,
+  tracks,
+  alt,
+  className,
+}: PlaylistCoverEditorProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    setIsUploading(true);
+    setError(null);
+
+    try {
+      const result = await updatePlaylistCover(playlistId, file);
+      onCoverChange(result.coverImageUrl);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "업로드에 실패했습니다.");
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
+  async function handleRemove(event: React.MouseEvent) {
+    event.stopPropagation();
+    setIsUploading(true);
+    setError(null);
+
+    try {
+      await removePlaylistCover(playlistId);
+      onCoverChange(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "제거에 실패했습니다.");
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <button
+        type="button"
+        onClick={() => fileInputRef.current?.click()}
+        disabled={isUploading}
+        aria-label="커버 이미지 변경"
+        className={cn("group relative block overflow-hidden rounded-[3px]", className)}
+      >
+        <PlaylistCover coverImageUrl={coverImageUrl} tracks={tracks} alt={alt} className="size-full" />
+
+        <span className="absolute inset-0 flex items-center justify-center gap-2 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+          {isUploading ? (
+            <Loader2 className="size-5 animate-spin text-white" />
+          ) : (
+            <>
+              <Camera className="size-5 text-white" />
+              {coverImageUrl && (
+                <span
+                  role="button"
+                  tabIndex={0}
+                  aria-label="커버 이미지 제거"
+                  onClick={handleRemove}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") handleRemove(event as unknown as React.MouseEvent);
+                  }}
+                  className="rounded-full bg-white/20 p-1.5 hover:bg-white/30"
+                >
+                  <X className="size-4 text-white" />
+                </span>
+              )}
+            </>
+          )}
+        </span>
+      </button>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+
+      {error && <p className="text-xs text-destructive">{error}</p>}
+    </div>
+  );
+}

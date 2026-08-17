@@ -3,7 +3,7 @@ import { persist } from "zustand/middleware";
 import { nanoid } from "nanoid";
 import { arrayMove } from "@dnd-kit/sortable";
 import type { DraftTrack } from "@/types/playlist";
-import type { DeezerTrack } from "@/types/deezer";
+import type { Track } from "@/types/track";
 
 interface PlaylistDraftState {
   title: string;
@@ -13,7 +13,7 @@ interface PlaylistDraftState {
   setTitle: (title: string) => void;
   setDescription: (description: string) => void;
   setGenre: (genre: string) => void;
-  addTrack: (track: DeezerTrack) => void;
+  addTrack: (track: Track) => void;
   removeTrack: (id: string) => void;
   reorderTracks: (activeId: string, overId: string) => void;
   clear: () => void;
@@ -39,12 +39,10 @@ export const usePlaylistDraftStore = create<PlaylistDraftState>()(
             ...state.tracks,
             {
               id: nanoid(),
-              deezerTrackId: track.id,
+              itunesTrackId: track.id,
               title: track.title,
-              artist: track.artist.name,
-              album: track.album.title,
-              coverUrl: track.album.cover_medium,
-              previewUrl: track.preview,
+              artist: track.artist,
+              album: track.album,
               duration: track.duration,
             },
           ],

@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { EditorialPlaylistCard } from "@/components/playlist/editorial-playlist-card";
+import type { TrackSeed } from "@/lib/gradient";
 
 interface LibraryPlaylist {
   id: string;
   title: string;
-  coverUrls: string[];
+  coverImageUrl: string | null;
+  tracks: TrackSeed[];
   likeCount: number;
   initialLiked: boolean;
 }
@@ -42,7 +44,8 @@ export function PlaylistLibrary({ playlists, isOwnProfile, isAuthenticated }: Pl
               key={playlist.id}
               id={playlist.id}
               title={playlist.title}
-              coverUrls={playlist.coverUrls}
+              coverImageUrl={playlist.coverImageUrl}
+              tracks={playlist.tracks}
               initialLiked={playlist.initialLiked}
               likeCount={playlist.likeCount}
               isAuthenticated={isAuthenticated}

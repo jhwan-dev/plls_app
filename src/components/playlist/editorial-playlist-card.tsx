@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { PlaylistCoverCollage } from "@/components/playlist/playlist-cover-collage";
+import { PlaylistCover } from "@/components/playlist/playlist-cover";
 import { LikeButton } from "@/components/playlist/like-button";
 import { displayName } from "@/lib/user-display";
+import type { TrackSeed } from "@/lib/gradient";
 
 interface EditorialPlaylistCardOwner {
   id: string;
@@ -13,7 +14,8 @@ interface EditorialPlaylistCardOwner {
 interface EditorialPlaylistCardProps {
   id: string;
   title: string;
-  coverUrls: string[];
+  coverImageUrl: string | null;
+  tracks: TrackSeed[];
   owner?: EditorialPlaylistCardOwner | null;
   initialLiked: boolean;
   likeCount: number;
@@ -25,7 +27,8 @@ interface EditorialPlaylistCardProps {
 export function EditorialPlaylistCard({
   id,
   title,
-  coverUrls,
+  coverImageUrl,
+  tracks,
   owner,
   initialLiked,
   likeCount,
@@ -34,8 +37,9 @@ export function EditorialPlaylistCard({
   return (
     <div className="flex flex-col gap-2.5">
       <Link href={`/playlist/${id}`} className="block">
-        <PlaylistCoverCollage
-          covers={coverUrls}
+        <PlaylistCover
+          coverImageUrl={coverImageUrl}
+          tracks={tracks}
           alt={title}
           className="aspect-[4/5] w-full rounded-[3px]"
           sizes="(max-width: 640px) 45vw, 260px"

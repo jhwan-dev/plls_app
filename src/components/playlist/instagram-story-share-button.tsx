@@ -7,35 +7,15 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import { StoryCard } from "@/components/playlist/story-card";
 
-// Cover art can still be loading when the user taps share — capturing
-// before it settles can rasterize a blank frame. Wait for every <img> in
-// the card to actually finish loading first. (The wordmark is plain text,
-// not an image, so it's never part of this wait.)
-async function waitForImages(container: HTMLElement) {
-  const imgs = Array.from(container.querySelectorAll("img"));
-  await Promise.all(
-    imgs.map((img) =>
-      img.complete
-        ? Promise.resolve()
-        : new Promise<void>((resolve) => {
-            img.addEventListener("load", () => resolve(), { once: true });
-            img.addEventListener("error", () => resolve(), { once: true });
-          }),
-    ),
-  );
-}
-
 interface InstagramStoryShareButtonProps {
   playlistId: string;
   title: string;
-  coverUrls: string[];
   tracks: { title: string; artist: string }[];
 }
 
 export function InstagramStoryShareButton({
   playlistId,
   title,
-  coverUrls,
   tracks,
 }: InstagramStoryShareButtonProps) {
   const cardRef = useRef<HTMLDivElement>(null);
@@ -46,7 +26,9 @@ export function InstagramStoryShareButton({
     setIsGenerating(true);
 
     try {
-      await waitForImages(cardRef.current);
+      // No <img> in the card anymore (gradient blobs + text only), so there's
+      // nothing to wait for before capture — unlike the old cover-art
+      // collage, this can never rasterize a blank frame.
       const dataUrl = await toPng(cardRef.current, {
         width: 1080,
         height: 1920,
@@ -118,7 +100,7 @@ export function InstagramStoryShareButton({
       {/* Off-screen — laid out (not display:none) so html-to-image can
           rasterize it, but never visible to the user. */}
       <div style={{ position: "fixed", top: 0, left: -10_000, pointerEvents: "none" }} aria-hidden="true">
-        <StoryCard ref={cardRef} title={title} coverUrls={coverUrls} tracks={tracks} />
+        <StoryCard ref={cardRef} title={title} tracks={tracks} />
       </div>
     </>
   );

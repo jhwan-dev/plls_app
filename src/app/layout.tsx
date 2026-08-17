@@ -3,8 +3,6 @@ import { Geist, Geist_Mono, Black_Han_Sans } from "next/font/google";
 import "./globals.css";
 import { auth } from "@/lib/auth";
 import { QueryProvider } from "@/components/providers/query-provider";
-import { GlobalAudioPlayer } from "@/components/player/global-audio-player";
-import { MiniPlayer } from "@/components/player/mini-player";
 import { SiteHeader } from "@/components/layout/site-header";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { MobileContentOffset } from "@/components/layout/mobile-content-offset";
@@ -38,7 +36,7 @@ export const metadata: Metadata = {
     default: "PLLS — Playlist Sharing",
     template: "%s | PLLS",
   },
-  description: "Search Deezer tracks and build a playlist you can share.",
+  description: "Search for tracks and build a playlist you can share.",
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
@@ -58,8 +56,6 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <Toaster>
             <SiteHeader session={session} />
             <MobileContentOffset>{children}</MobileContentOffset>
-            <GlobalAudioPlayer />
-            <MiniPlayer />
             <BottomNav
             userId={session?.user?.id}
             userImage={session?.user?.image ?? null}

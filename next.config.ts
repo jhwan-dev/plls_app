@@ -35,23 +35,12 @@ const nextConfig: NextConfig = {
     "kentucky-obtaining-organizer-giants.trycloudflare.com",
   ],
   images: {
-    // Every image we render is a Deezer CDN cover that's already sized
-    // appropriately (cover_medium etc.) — there's nothing for Next's
-    // optimizer to usefully resize, so skip proxying them through our own
-    // server. This also sidesteps Next's SSRF guard misfiring on carrier
+    // The only images PLLS ever renders are user-uploaded (avatar / playlist
+    // cover, via Vercel Blob) — nothing for Next's optimizer to usefully
+    // resize. This also sidesteps Next's SSRF guard misfiring on carrier
     // NAT64 addresses (e.g. testing over a phone hotspot on an IPv6-only
     // network), since the browser fetches the image directly instead.
     unoptimized: true,
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "*.dzcdn.net",
-      },
-      {
-        protocol: "https",
-        hostname: "api.deezer.com",
-      },
-    ],
   },
 };
 

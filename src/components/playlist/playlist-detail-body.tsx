@@ -18,7 +18,8 @@ import { nanoid } from "nanoid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { UserAvatar } from "@/components/brand/user-avatar";
-import { PlaylistCoverCollage } from "@/components/playlist/playlist-cover-collage";
+import { PlaylistCover } from "@/components/playlist/playlist-cover";
+import { PlaylistCoverEditor } from "@/components/playlist/playlist-cover-editor";
 import { PlaylistTrackRow } from "@/components/playlist/playlist-track-row";
 import { SortableDraftTrackRow } from "@/components/playlist/sortable-draft-track-row";
 import { TrackSearchAdd } from "@/components/playlist/track-search-add";
@@ -29,7 +30,7 @@ import { DeletePlaylistButton } from "@/components/playlist/delete-playlist-butt
 import { EditableDescription } from "@/components/playlist/editable-description";
 import { updatePlaylist } from "@/lib/api/playlist-client";
 import type { DraftTrack } from "@/types/playlist";
-import type { DeezerTrack } from "@/types/deezer";
+import type { Track } from "@/types/track";
 
 interface PlaylistDetailBodyProps {
   playlistId: string;
@@ -37,6 +38,7 @@ interface PlaylistDetailBodyProps {
   genre: string | null;
   initialDescription: string | null;
   initialTracks: DraftTrack[];
+  coverImageUrl: string | null;
   owner: { id: string; image: string | null; name: string } | null;
   isOwner: boolean;
   isAuthenticated: boolean;
@@ -50,6 +52,7 @@ export function PlaylistDetailBody({
   genre,
   initialDescription,
   initialTracks,
+  coverImageUrl: initialCoverImageUrl,
   owner,
   isOwner,
   isAuthenticated,
@@ -59,6 +62,7 @@ export function PlaylistDetailBody({
   const router = useRouter();
   const [title, setTitle] = useState(initialTitle);
   const [tracks, setTracks] = useState(initialTracks);
+  const [coverImageUrl, setCoverImageUrl] = useState(initialCoverImageUrl);
   const [isEditing, setIsEditing] = useState(false);
   const [draftTitle, setDraftTitle] = useState(initialTitle);
   const [draftTracks, setDraftTracks] = useState(initialTracks);
@@ -82,17 +86,15 @@ export function PlaylistDetailBody({
     setError(null);
   }
 
-  function handleAddTrack(track: DeezerTrack) {
+  function handleAddTrack(track: Track) {
     setDraftTracks((prev) => [
       ...prev,
       {
         id: nanoid(),
-        deezerTrackId: track.id,
+        itunesTrackId: track.id,
         title: track.title,
-        artist: track.artist.name,
-        album: track.album.title,
-        coverUrl: track.album.cover_medium,
-        previewUrl: track.preview,
+        artist: track.artist,
+        album: track.album,
         duration: track.duration,
       },
     ]);
@@ -139,7 +141,10 @@ export function PlaylistDetailBody({
     }
   }
 
-  const coverUrls = tracks.slice(0, 4).map((track) => track.coverUrl);
+  const trackSeeds = (isEditing ? draftTracks : tracks).map((track) => ({
+    title: track.title,
+    artist: track.artist,
+  }));
   const ownerName = owner?.name ?? null;
 
   return (
@@ -147,12 +152,24 @@ export function PlaylistDetailBody({
       {/* Mobile: cover on top, then editorial credit block below.
           sm+: cover on the left, credit block beside it — a magazine spread. */}
       <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:items-start sm:gap-8 sm:text-left">
-        <PlaylistCoverCollage
-          covers={coverUrls}
-          alt={title}
-          className="aspect-[4/5] w-full max-w-[280px] shrink-0 rounded-[3px] sm:w-64"
-          sizes="(max-width: 640px) 280px, 256px"
-        />
+        {isOwner && isEditing ? (
+          <PlaylistCoverEditor
+            playlistId={playlistId}
+            coverImageUrl={coverImageUrl}
+            onCoverChange={setCoverImageUrl}
+            tracks={trackSeeds}
+            alt={title}
+            className="aspect-[4/5] w-full max-w-[280px] shrink-0 sm:w-64"
+          />
+        ) : (
+          <PlaylistCover
+            coverImageUrl={coverImageUrl}
+            tracks={trackSeeds}
+            alt={title}
+            className="aspect-[4/5] w-full max-w-[280px] shrink-0 rounded-[3px] sm:w-64"
+            sizes="(max-width: 640px) 280px, 256px"
+          />
+        )}
 
         <div className="flex flex-1 flex-col items-center gap-4 sm:items-start">
           <div className="flex w-full flex-col gap-1.5">
@@ -219,7 +236,6 @@ export function PlaylistDetailBody({
                   <InstagramStoryShareButton
                     playlistId={playlistId}
                     title={title}
-                    coverUrls={coverUrls}
                     tracks={tracks.slice(0, 4).map((track) => ({ title: track.title, artist: track.artist }))}
                   />
                   {isOwner && (
@@ -261,13 +277,11 @@ export function PlaylistDetailBody({
           {tracks.map((track) => (
             <PlaylistTrackRow
               key={track.id}
-              deezerTrackId={track.deezerTrackId}
               title={track.title}
               artist={track.artist}
               album={track.album}
-              coverUrl={track.coverUrl}
-              previewUrl={track.previewUrl}
               duration={track.duration}
+              youtubeUrl={track.youtubeUrl!}
             />
           ))}
         </div>

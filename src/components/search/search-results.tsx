@@ -4,12 +4,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TrackRow } from "@/components/search/track-row";
 import { usePlaylistDraftStore } from "@/store/playlist-draft-store";
 import { cn } from "@/lib/utils";
-import type { DeezerTrack } from "@/types/deezer";
+import type { Track } from "@/types/track";
 
 function TrackRowSkeleton() {
   return (
     <div className="flex items-center gap-3 p-2">
-      <Skeleton className="size-9 shrink-0 rounded-full" />
       <Skeleton className="size-12 shrink-0 rounded-md" />
       <div className="flex-1 space-y-2">
         <Skeleton className="h-4 w-1/3" />
@@ -23,13 +22,13 @@ function AddableTrackList({
   tracks,
   onAddTrack,
 }: {
-  tracks: DeezerTrack[];
-  onAddTrack: (track: DeezerTrack) => void;
+  tracks: Track[];
+  onAddTrack: (track: Track) => void;
 }) {
   // Only used to show "already added" feedback in the key point color — the
   // draft still allows the same track twice, this is just a visual cue.
   const draftTracks = usePlaylistDraftStore((state) => state.tracks);
-  const addedIds = new Set(draftTracks.map((track) => track.deezerTrackId));
+  const addedIds = new Set(draftTracks.map((track) => track.itunesTrackId));
 
   return (
     <div className="flex flex-col gap-1">
@@ -59,14 +58,14 @@ function AddableTrackList({
 }
 
 interface SearchResultsProps {
-  tracks: DeezerTrack[];
+  tracks: Track[];
   isLoading: boolean;
   isError: boolean;
   errorMessage?: string;
   hasQuery: boolean;
-  onAddTrack: (track: DeezerTrack) => void;
-  chartTracks: DeezerTrack[];
-  isChartLoading: boolean;
+  onAddTrack: (track: Track) => void;
+  trendingTracks: Track[];
+  isTrendingLoading: boolean;
 }
 
 export function SearchResults({
@@ -76,8 +75,8 @@ export function SearchResults({
   errorMessage,
   hasQuery,
   onAddTrack,
-  chartTracks,
-  isChartLoading,
+  trendingTracks,
+  isTrendingLoading,
 }: SearchResultsProps) {
   if (isLoading) {
     return (
@@ -98,7 +97,7 @@ export function SearchResults({
   }
 
   if (!hasQuery) {
-    if (isChartLoading) {
+    if (isTrendingLoading) {
       return (
         <div className="flex flex-col gap-1">
           {Array.from({ length: 8 }).map((_, index) => (
@@ -108,7 +107,7 @@ export function SearchResults({
       );
     }
 
-    if (chartTracks.length === 0) {
+    if (trendingTracks.length === 0) {
       return (
         <div className="flex flex-col items-center gap-3 py-16 text-center text-muted-foreground">
           <Music2 className="size-8" />
@@ -120,9 +119,9 @@ export function SearchResults({
     return (
       <div className="flex flex-col gap-4">
         <h2 className="font-display border-b border-border pb-3 text-2xl tracking-tight text-foreground">
-          Trending Now
+          Trending on PLLS
         </h2>
-        <AddableTrackList tracks={chartTracks} onAddTrack={onAddTrack} />
+        <AddableTrackList tracks={trendingTracks} onAddTrack={onAddTrack} />
       </div>
     );
   }

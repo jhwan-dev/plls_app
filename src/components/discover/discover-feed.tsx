@@ -1,9 +1,11 @@
 import { EditorialPlaylistCard } from "@/components/playlist/editorial-playlist-card";
+import type { TrackSeed } from "@/lib/gradient";
 
 export interface FeedPlaylist {
   id: string;
   title: string;
-  coverUrls: string[];
+  coverImageUrl: string | null;
+  tracks: TrackSeed[];
   likeCount: number;
   initialLiked: boolean;
   owner: { id: string; name: string | null; nickname: string | null; image: string | null } | null;
@@ -53,7 +55,8 @@ export function DiscoverFeed({ sections, isAuthenticated }: DiscoverFeedProps) {
                   <EditorialPlaylistCard
                     id={playlist.id}
                     title={playlist.title}
-                    coverUrls={playlist.coverUrls}
+                    coverImageUrl={playlist.coverImageUrl}
+                    tracks={playlist.tracks}
                     owner={playlist.owner}
                     initialLiked={playlist.initialLiked}
                     likeCount={playlist.likeCount}

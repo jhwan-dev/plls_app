@@ -20,7 +20,8 @@ const SECTION_PREVIEW_LIMIT = 10;
 interface RawPlaylist {
   id: string;
   title: string;
-  tracks: { coverUrl: string }[];
+  coverImageUrl: string | null;
+  tracks: { title: string; artist: string }[];
   _count: { tracks: number; likes: number };
   user: { id: string; name: string | null; nickname: string | null; image: string | null } | null;
 }
@@ -49,7 +50,8 @@ export default async function Home() {
   const toFeedPlaylist = (playlist: RawPlaylist): FeedPlaylist => ({
     id: playlist.id,
     title: playlist.title,
-    coverUrls: playlist.tracks.map((track) => track.coverUrl),
+    coverImageUrl: playlist.coverImageUrl,
+    tracks: playlist.tracks,
     likeCount: playlist._count.likes,
     initialLiked: likedIds.has(playlist.id),
     owner: playlist.user,

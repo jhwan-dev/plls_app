@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { updatePlaylistSchema } from "@/lib/validations/playlist";
+import { resolveYoutubeUrl } from "@/lib/track-link";
 
 export async function PATCH(request: Request, { params }: RouteContext<"/api/playlists/[id]">) {
   const session = await auth();
@@ -40,6 +41,17 @@ export async function PATCH(request: Request, { params }: RouteContext<"/api/pla
   const { title, description, tracks } = parsed.data;
 
   try {
+    // Resolved outside the transaction — these are network calls to YouTube
+    // (cache-first, see resolveYoutubeUrl), not something that belongs
+    // inside a short-lived DB transaction.
+    const youtubeUrls = tracks
+      ? await Promise.all(
+          tracks.map((track) =>
+            resolveYoutubeUrl(track.itunesTrackId, track.title, track.artist),
+          ),
+        )
+      : null;
+
     const updated = await prisma.$transaction(async (tx) => {
       // Full replace, not a diff — simplest way to apply add/remove/reorder
       // together in one write. Track ids aren't referenced anywhere else
@@ -57,13 +69,12 @@ export async function PATCH(request: Request, { params }: RouteContext<"/api/pla
             tracks: {
               create: tracks.map((track, index) => ({
                 position: index,
-                deezerTrackId: BigInt(track.deezerTrackId),
+                itunesTrackId: track.itunesTrackId,
                 title: track.title,
                 artist: track.artist,
                 album: track.album,
-                coverUrl: track.coverUrl,
-                previewUrl: track.previewUrl,
                 duration: track.duration,
+                youtubeUrl: youtubeUrls![index]!,
               })),
             },
           }),

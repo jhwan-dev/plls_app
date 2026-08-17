@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createPlaylistSchema } from "@/lib/validations/playlist";
+import { resolveYoutubeUrl } from "@/lib/track-link";
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -28,6 +29,12 @@ export async function POST(request: Request) {
   const { title, description, genre, tracks } = parsed.data;
 
   try {
+    const youtubeUrls = await Promise.all(
+      tracks.map((track) =>
+        resolveYoutubeUrl(track.itunesTrackId, track.title, track.artist),
+      ),
+    );
+
     const playlist = await prisma.playlist.create({
       data: {
         title,
@@ -39,13 +46,12 @@ export async function POST(request: Request) {
         tracks: {
           create: tracks.map((track, index) => ({
             position: index,
-            deezerTrackId: BigInt(track.deezerTrackId),
+            itunesTrackId: track.itunesTrackId,
             title: track.title,
             artist: track.artist,
             album: track.album,
-            coverUrl: track.coverUrl,
-            previewUrl: track.previewUrl,
             duration: track.duration,
+            youtubeUrl: youtubeUrls[index]!,
           })),
         },
       },

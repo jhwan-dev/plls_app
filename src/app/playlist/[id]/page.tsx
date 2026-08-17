@@ -21,7 +21,6 @@ export async function generateMetadata({
   }
 
   const description = summarize(playlist);
-  const coverUrl = playlist.tracks[0]?.coverUrl;
 
   return {
     title: playlist.title,
@@ -31,13 +30,11 @@ export async function generateMetadata({
       description,
       url: `/playlist/${playlist.id}`,
       type: "music.playlist",
-      images: coverUrl ? [{ url: coverUrl, width: 500, height: 500 }] : undefined,
     },
     twitter: {
       card: "summary_large_image",
       title: playlist.title,
       description,
-      images: coverUrl ? [coverUrl] : undefined,
     },
   };
 }
@@ -68,14 +65,14 @@ export default async function PlaylistPage({ params }: PageProps<"/playlist/[id]
       initialDescription={playlist.description}
       initialTracks={playlist.tracks.map((track) => ({
         id: track.id,
-        deezerTrackId: Number(track.deezerTrackId),
+        itunesTrackId: track.itunesTrackId,
         title: track.title,
         artist: track.artist,
         album: track.album,
-        coverUrl: track.coverUrl,
-        previewUrl: track.previewUrl,
         duration: track.duration,
+        youtubeUrl: track.youtubeUrl,
       }))}
+      coverImageUrl={playlist.coverImageUrl}
       owner={owner ? { id: owner.id, image: owner.image, name: ownerName ?? "" } : null}
       isOwner={isOwner}
       isAuthenticated={!!userId}

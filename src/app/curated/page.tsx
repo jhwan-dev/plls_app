@@ -40,7 +40,8 @@ export default async function CuratedPage() {
               key={playlist.id}
               id={playlist.id}
               title={playlist.title}
-              coverUrls={playlist.tracks.map((track) => track.coverUrl)}
+              coverImageUrl={playlist.coverImageUrl}
+              tracks={playlist.tracks}
               owner={playlist.user}
               initialLiked={likedIds.has(playlist.id)}
               likeCount={playlist._count.likes}

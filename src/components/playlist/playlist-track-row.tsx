@@ -1,41 +1,19 @@
-import Image from "next/image";
-import { PreviewPlayButton } from "@/components/player/preview-play-button";
+import { SquarePlay } from "lucide-react";
+import { GradientTrackArt } from "@/components/track/gradient-track-art";
 import { formatDuration } from "@/lib/format";
 
 interface PlaylistTrackRowProps {
-  /** Deezer track id — fits safely in a JS number, so we convert out of BigInt at the DB boundary. */
-  deezerTrackId: number;
   title: string;
   artist: string;
   album: string;
-  coverUrl: string;
-  previewUrl: string;
   duration: number;
+  youtubeUrl: string;
 }
 
-export function PlaylistTrackRow({
-  deezerTrackId,
-  title,
-  artist,
-  album,
-  coverUrl,
-  previewUrl,
-  duration,
-}: PlaylistTrackRowProps) {
+export function PlaylistTrackRow({ title, artist, album, duration, youtubeUrl }: PlaylistTrackRowProps) {
   return (
     <div className="flex items-center gap-3 py-3">
-      <div className="relative size-11 shrink-0 overflow-hidden rounded-[3px] bg-muted">
-        <Image src={coverUrl} alt={album} fill sizes="44px" className="object-cover" />
-      </div>
-
-      <PreviewPlayButton
-        trackId={deezerTrackId}
-        previewUrl={previewUrl}
-        title={title}
-        artist={artist}
-        coverUrl={coverUrl}
-        className="size-8"
-      />
+      <GradientTrackArt title={title} artist={artist} className="size-11 shrink-0 rounded-[3px]" />
 
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm leading-tight font-semibold">{title}</p>
@@ -49,6 +27,18 @@ export function PlaylistTrackRow({
       <p className="w-10 shrink-0 text-right font-mono text-xs text-muted-foreground tabular-nums">
         {formatDuration(duration)}
       </p>
+
+      {/* Plain link to YouTube — never an embed, see the playback policy in
+          src/lib/track-link.ts. */}
+      <a
+        href={youtubeUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="YouTube에서 재생"
+        className="shrink-0 rounded-full p-1.5 text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <SquarePlay className="size-5" />
+      </a>
     </div>
   );
 }

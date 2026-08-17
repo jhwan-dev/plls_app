@@ -1,12 +1,10 @@
 import { z } from "zod";
 
 export const playlistTrackInputSchema = z.object({
-  deezerTrackId: z.number().int().positive(),
+  itunesTrackId: z.number().int().positive(),
   title: z.string().trim().min(1),
   artist: z.string().trim().min(1),
   album: z.string().trim().min(1),
-  coverUrl: z.string().url(),
-  previewUrl: z.string().url(),
   duration: z.number().int().nonnegative(),
 });
 

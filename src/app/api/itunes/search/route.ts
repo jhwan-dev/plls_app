@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { DeezerApiError, searchDeezerTracks } from "@/lib/deezer";
+import { ItunesApiError, searchItunesTracks } from "@/lib/itunes";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -12,28 +12,25 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const index = Number(searchParams.get("index") ?? 0);
   const limit = Number(searchParams.get("limit") ?? 25);
 
   try {
-    const result = await searchDeezerTracks(query, {
-      index: Number.isFinite(index) ? index : 0,
+    const tracks = await searchItunesTracks(query, {
       limit: Number.isFinite(limit) ? Math.min(limit, 50) : 25,
     });
 
-    return NextResponse.json(result, {
-      headers: {
-        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
-      },
-    });
+    return NextResponse.json(
+      { tracks },
+      { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" } },
+    );
   } catch (error) {
-    if (error instanceof DeezerApiError) {
+    if (error instanceof ItunesApiError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
 
-    console.error("Unexpected error while searching Deezer:", error);
+    console.error("Unexpected error while searching iTunes:", error);
     return NextResponse.json(
-      { error: "Failed to search Deezer. Please try again later." },
+      { error: "Failed to search iTunes. Please try again later." },
       { status: 500 },
     );
   }

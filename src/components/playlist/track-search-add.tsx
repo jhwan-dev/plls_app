@@ -6,16 +6,16 @@ import { Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { TrackRow } from "@/components/search/track-row";
-import { searchTracks } from "@/lib/api/deezer-client";
+import { searchTracks } from "@/lib/api/itunes-client";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
-import type { DeezerTrack } from "@/types/deezer";
+import type { Track } from "@/types/track";
 
 interface TrackSearchAddProps {
-  onAdd: (track: DeezerTrack) => void;
+  onAdd: (track: Track) => void;
 }
 
 /** Compact inline search used inside the playlist editor to add tracks to
- * an already-saved playlist — same Deezer search as the main search page,
+ * an already-saved playlist — same iTunes search as the main search page,
  * just scoped to this one editing session instead of the global draft. */
 export function TrackSearchAdd({ onAdd }: TrackSearchAddProps) {
   const [query, setQuery] = useState("");
@@ -23,12 +23,12 @@ export function TrackSearchAdd({ onAdd }: TrackSearchAddProps) {
   const hasQuery = debouncedQuery.length > 0;
 
   const { data, isLoading } = useQuery({
-    queryKey: ["deezer-search", debouncedQuery],
+    queryKey: ["itunes-search", debouncedQuery],
     queryFn: () => searchTracks(debouncedQuery),
     enabled: hasQuery,
   });
 
-  const tracks = data?.data ?? [];
+  const tracks = data ?? [];
 
   return (
     <div className="flex flex-col gap-2">
