@@ -74,7 +74,7 @@ export async function PATCH(request: Request, { params }: RouteContext<"/api/pla
                 artist: track.artist,
                 album: track.album,
                 duration: track.duration,
-                youtubeUrl: youtubeUrls![index]!,
+                youtubeUrl: youtubeUrls![index],
               })),
             },
           }),

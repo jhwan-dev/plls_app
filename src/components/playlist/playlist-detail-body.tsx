@@ -25,6 +25,7 @@ import { SortableDraftTrackRow } from "@/components/playlist/sortable-draft-trac
 import { TrackSearchAdd } from "@/components/playlist/track-search-add";
 import { LikeButton } from "@/components/playlist/like-button";
 import { ShareButton } from "@/components/playlist/share-button";
+import { PlaylistPlayButton } from "@/components/playlist/playlist-play-button";
 import { InstagramStoryShareButton } from "@/components/playlist/instagram-story-share-button";
 import { DeletePlaylistButton } from "@/components/playlist/delete-playlist-button";
 import { EditableDescription } from "@/components/playlist/editable-description";
@@ -226,6 +227,7 @@ export function PlaylistDetailBody({
                 </>
               ) : (
                 <>
+                  <PlaylistPlayButton tracks={tracks.map((track) => ({ youtubeUrl: track.youtubeUrl ?? null }))} />
                   <LikeButton
                     playlistId={playlistId}
                     initialLiked={initialLiked}
@@ -281,7 +283,7 @@ export function PlaylistDetailBody({
               artist={track.artist}
               album={track.album}
               duration={track.duration}
-              youtubeUrl={track.youtubeUrl!}
+              youtubeUrl={track.youtubeUrl ?? null}
             />
           ))}
         </div>

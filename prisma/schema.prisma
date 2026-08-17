@@ -55,9 +55,11 @@ model PlaylistTrack {
   duration Int
 
   // Resolved once at add-time via the YouTube Data API (see TrackLinkCache)
-  // and snapshotted here so playback linking never needs a join — either a
-  // direct video match, or a YouTube search-results link when none was found.
-  youtubeUrl String
+  // and snapshotted here so playback linking never needs a join. Null when
+  // no video was found — the per-track "재생" button only renders when this
+  // is set, never a search-results link, so a null here also means the
+  // track is skipped from the playlist-level "전체 재생" concatenation.
+  youtubeUrl String?
 
   createdAt DateTime @default(now())
 

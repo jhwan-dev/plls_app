@@ -7,7 +7,8 @@ interface PlaylistTrackRowProps {
   artist: string;
   album: string;
   duration: number;
-  youtubeUrl: string;
+  /** The track's own matched YouTube video — never a search-results link. No button renders without one. */
+  youtubeUrl: string | null;
 }
 
 export function PlaylistTrackRow({ title, artist, album, duration, youtubeUrl }: PlaylistTrackRowProps) {
@@ -29,16 +30,19 @@ export function PlaylistTrackRow({ title, artist, album, duration, youtubeUrl }:
       </p>
 
       {/* Plain link to YouTube — never an embed, see the playback policy in
-          src/lib/track-link.ts. */}
-      <a
-        href={youtubeUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="YouTube에서 재생"
-        className="shrink-0 rounded-full p-1.5 text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <SquarePlay className="size-5" />
-      </a>
+          src/lib/track-link.ts. Absent (not a disabled state) when no video
+          was matched, since there's nothing to link to but a search page. */}
+      {youtubeUrl && (
+        <a
+          href={youtubeUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="YouTube에서 재생"
+          className="shrink-0 rounded-full p-1.5 text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <SquarePlay className="size-5" />
+        </a>
+      )}
     </div>
   );
 }

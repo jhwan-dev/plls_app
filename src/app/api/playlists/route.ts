@@ -51,7 +51,7 @@ export async function POST(request: Request) {
             artist: track.artist,
             album: track.album,
             duration: track.duration,
-            youtubeUrl: youtubeUrls[index]!,
+            youtubeUrl: youtubeUrls[index],
           })),
         },
       },

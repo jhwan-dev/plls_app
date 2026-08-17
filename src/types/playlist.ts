@@ -7,6 +7,10 @@ export interface DraftTrack {
   artist: string;
   album: string;
   duration: number;
-  /** Present only once loaded from a saved playlist (resolved server-side at save time). */
-  youtubeUrl?: string;
+  /**
+   * Set once loaded from a saved playlist (resolved server-side at save
+   * time) — undefined for a not-yet-saved draft track, null when resolution
+   * found no video match.
+   */
+  youtubeUrl?: string | null;
 }
