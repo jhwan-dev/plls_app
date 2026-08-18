@@ -29,7 +29,7 @@ import { PlaylistPlayButton } from "@/components/playlist/playlist-play-button";
 import { InstagramStoryShareButton } from "@/components/playlist/instagram-story-share-button";
 import { DeletePlaylistButton } from "@/components/playlist/delete-playlist-button";
 import { EditableDescription } from "@/components/playlist/editable-description";
-import { updatePlaylist } from "@/lib/api/playlist-client";
+import { updatePlaylist, updatePlaylistCover, removePlaylistCover } from "@/lib/api/playlist-client";
 import type { DraftTrack } from "@/types/playlist";
 import type { Track } from "@/types/track";
 
@@ -155,9 +155,16 @@ export function PlaylistDetailBody({
       <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:items-start sm:gap-8 sm:text-left">
         {isOwner && isEditing ? (
           <PlaylistCoverEditor
-            playlistId={playlistId}
             coverImageUrl={coverImageUrl}
-            onCoverChange={setCoverImageUrl}
+            onUpload={async (file) => {
+              const result = await updatePlaylistCover(playlistId, file);
+              setCoverImageUrl(result.coverImageUrl);
+              return result.coverImageUrl;
+            }}
+            onRemove={async () => {
+              await removePlaylistCover(playlistId);
+              setCoverImageUrl(null);
+            }}
             tracks={trackSeeds}
             alt={title}
             className="aspect-[4/5] w-full max-w-[280px] shrink-0 sm:w-64"
@@ -238,6 +245,7 @@ export function PlaylistDetailBody({
                   <InstagramStoryShareButton
                     playlistId={playlistId}
                     title={title}
+                    coverImageUrl={coverImageUrl}
                     tracks={tracks.slice(0, 4).map((track) => ({ title: track.title, artist: track.artist }))}
                   />
                   {isOwner && (

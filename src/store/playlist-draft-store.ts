@@ -10,9 +10,11 @@ interface PlaylistDraftState {
   description: string;
   genre: string;
   tracks: DraftTrack[];
+  coverImageUrl: string | null;
   setTitle: (title: string) => void;
   setDescription: (description: string) => void;
   setGenre: (genre: string) => void;
+  setCoverImageUrl: (coverImageUrl: string | null) => void;
   addTrack: (track: Track) => void;
   removeTrack: (id: string) => void;
   reorderTracks: (activeId: string, overId: string) => void;
@@ -26,12 +28,15 @@ export const usePlaylistDraftStore = create<PlaylistDraftState>()(
       description: "",
       genre: "",
       tracks: [],
+      coverImageUrl: null,
 
       setTitle: (title) => set({ title }),
 
       setDescription: (description) => set({ description }),
 
       setGenre: (genre) => set({ genre }),
+
+      setCoverImageUrl: (coverImageUrl) => set({ coverImageUrl }),
 
       addTrack: (track) =>
         set((state) => ({
@@ -60,7 +65,7 @@ export const usePlaylistDraftStore = create<PlaylistDraftState>()(
           return { tracks: arrayMove(state.tracks, oldIndex, newIndex) };
         }),
 
-      clear: () => set({ title: "", description: "", genre: "", tracks: [] }),
+      clear: () => set({ title: "", description: "", genre: "", tracks: [], coverImageUrl: null }),
     }),
     {
       // Keeps an in-progress playlist across accidental refreshes/tab closes;

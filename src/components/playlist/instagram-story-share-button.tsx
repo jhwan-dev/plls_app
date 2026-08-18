@@ -7,15 +7,34 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import { StoryCard } from "@/components/playlist/story-card";
 
+// Only relevant when a cover image is set (see StoryCard) — capturing before
+// it's loaded can rasterize a blank frame. No-op when the card has no <img>
+// at all (gradient-blob background, the common case).
+async function waitForImages(container: HTMLElement) {
+  const imgs = Array.from(container.querySelectorAll("img"));
+  await Promise.all(
+    imgs.map((img) =>
+      img.complete
+        ? Promise.resolve()
+        : new Promise<void>((resolve) => {
+            img.addEventListener("load", () => resolve(), { once: true });
+            img.addEventListener("error", () => resolve(), { once: true });
+          }),
+    ),
+  );
+}
+
 interface InstagramStoryShareButtonProps {
   playlistId: string;
   title: string;
+  coverImageUrl?: string | null;
   tracks: { title: string; artist: string }[];
 }
 
 export function InstagramStoryShareButton({
   playlistId,
   title,
+  coverImageUrl,
   tracks,
 }: InstagramStoryShareButtonProps) {
   const cardRef = useRef<HTMLDivElement>(null);
@@ -26,9 +45,7 @@ export function InstagramStoryShareButton({
     setIsGenerating(true);
 
     try {
-      // No <img> in the card anymore (gradient blobs + text only), so there's
-      // nothing to wait for before capture — unlike the old cover-art
-      // collage, this can never rasterize a blank frame.
+      await waitForImages(cardRef.current);
       const dataUrl = await toPng(cardRef.current, {
         width: 1080,
         height: 1920,
@@ -100,7 +117,7 @@ export function InstagramStoryShareButton({
       {/* Off-screen — laid out (not display:none) so html-to-image can
           rasterize it, but never visible to the user. */}
       <div style={{ position: "fixed", top: 0, left: -10_000, pointerEvents: "none" }} aria-hidden="true">
-        <StoryCard ref={cardRef} title={title} tracks={tracks} />
+        <StoryCard ref={cardRef} title={title} coverImageUrl={coverImageUrl} tracks={tracks} />
       </div>
     </>
   );

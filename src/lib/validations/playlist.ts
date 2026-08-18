@@ -27,6 +27,7 @@ export const createPlaylistSchema = z.object({
   tracks: z
     .array(playlistTrackInputSchema)
     .min(1, "최소 1개 이상의 트랙을 추가해 주세요."),
+  coverImageUrl: z.string().url().optional(),
 });
 
 export type CreatePlaylistInput = z.infer<typeof createPlaylistSchema>;

@@ -18,8 +18,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { SortableDraftTrackRow } from "@/components/playlist/sortable-draft-track-row";
+import { PlaylistCoverEditor } from "@/components/playlist/playlist-cover-editor";
 import { usePlaylistDraftStore } from "@/store/playlist-draft-store";
-import { createPlaylist } from "@/lib/api/playlist-client";
+import { createPlaylist, uploadDraftCover } from "@/lib/api/playlist-client";
 
 interface PlaylistDraftPanelProps {
   isAuthenticated: boolean;
@@ -32,9 +33,11 @@ export function PlaylistDraftPanel({ isAuthenticated, isCurator }: PlaylistDraft
   const description = usePlaylistDraftStore((state) => state.description);
   const genre = usePlaylistDraftStore((state) => state.genre);
   const tracks = usePlaylistDraftStore((state) => state.tracks);
+  const coverImageUrl = usePlaylistDraftStore((state) => state.coverImageUrl);
   const setTitle = usePlaylistDraftStore((state) => state.setTitle);
   const setDescription = usePlaylistDraftStore((state) => state.setDescription);
   const setGenre = usePlaylistDraftStore((state) => state.setGenre);
+  const setCoverImageUrl = usePlaylistDraftStore((state) => state.setCoverImageUrl);
   const removeTrack = usePlaylistDraftStore((state) => state.removeTrack);
   const reorderTracks = usePlaylistDraftStore((state) => state.reorderTracks);
   const clear = usePlaylistDraftStore((state) => state.clear);
@@ -71,6 +74,19 @@ export function PlaylistDraftPanel({ isAuthenticated, isCurator }: PlaylistDraft
         <h2 className="font-display text-2xl tracking-tight text-foreground">My PLLS</h2>
         <span className="font-mono text-xs text-muted-foreground">{tracks.length}곡</span>
       </div>
+
+      <PlaylistCoverEditor
+        coverImageUrl={coverImageUrl}
+        onUpload={async (file) => {
+          const result = await uploadDraftCover(file);
+          setCoverImageUrl(result.coverImageUrl);
+          return result.coverImageUrl;
+        }}
+        onRemove={() => setCoverImageUrl(null)}
+        tracks={tracks.map((track) => ({ title: track.title, artist: track.artist }))}
+        alt={title || "새 플레이리스트"}
+        className="aspect-[4/5] w-full max-w-[180px]"
+      />
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="playlist-title" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
@@ -156,7 +172,7 @@ export function PlaylistDraftPanel({ isAuthenticated, isCurator }: PlaylistDraft
       <Button
         type="button"
         disabled={!canSave}
-        onClick={() => mutation.mutate({ title, description, genre, tracks })}
+        onClick={() => mutation.mutate({ title, description, genre, tracks, coverImageUrl })}
       >
         {isSaving ? (
           <>

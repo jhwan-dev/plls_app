@@ -3,27 +3,27 @@
 import { useRef, useState, type ChangeEvent } from "react";
 import { Camera, Loader2, X } from "lucide-react";
 import { PlaylistCover } from "@/components/playlist/playlist-cover";
-import { updatePlaylistCover, removePlaylistCover } from "@/lib/api/playlist-client";
 import type { TrackSeed } from "@/lib/gradient";
 import { cn } from "@/lib/utils";
 
 interface PlaylistCoverEditorProps {
-  playlistId: string;
   coverImageUrl: string | null;
-  onCoverChange: (coverImageUrl: string | null) => void;
+  /** Uploads `file` and returns the resulting URL — callback owns whatever
+   * persistence (or lack of it) makes sense for the caller's context. */
+  onUpload: (file: File) => Promise<string>;
+  onRemove: () => Promise<void> | void;
   tracks: TrackSeed[];
   alt: string;
   className?: string;
 }
 
-/** Cover art with an upload/remove overlay — only rendered while the
- * playlist is in edit mode. Uploads take effect immediately, same as the
- * profile avatar (see ProfileHeroCard), independent of the title/track
- * draft's separate save/cancel flow. */
+/** Cover art with an upload/remove overlay. Used both for an already-saved
+ * playlist's edit mode and for the in-progress draft on the search/create
+ * page — see onUpload/onRemove for how the two differ. */
 export function PlaylistCoverEditor({
-  playlistId,
   coverImageUrl,
-  onCoverChange,
+  onUpload,
+  onRemove,
   tracks,
   alt,
   className,
@@ -41,8 +41,7 @@ export function PlaylistCoverEditor({
     setError(null);
 
     try {
-      const result = await updatePlaylistCover(playlistId, file);
-      onCoverChange(result.coverImageUrl);
+      await onUpload(file);
     } catch (err) {
       setError(err instanceof Error ? err.message : "업로드에 실패했습니다.");
     } finally {
@@ -56,8 +55,7 @@ export function PlaylistCoverEditor({
     setError(null);
 
     try {
-      await removePlaylistCover(playlistId);
-      onCoverChange(null);
+      await onRemove();
     } catch (err) {
       setError(err instanceof Error ? err.message : "제거에 실패했습니다.");
     } finally {

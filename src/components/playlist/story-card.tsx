@@ -8,9 +8,12 @@ interface StoryCardTrack {
 
 interface StoryCardProps {
   title: string;
-  /** Up to 4 tracks — used both for the numbered list and, via their
-   * deterministic colors, for the card's aura background. No cover art
-   * involved anywhere in this card. */
+  /** User-uploaded playlist cover — when set, used as both the blurred
+   * background and a sharp foreground image, replacing the generated color
+   * aura entirely. */
+  coverImageUrl?: string | null;
+  /** Up to 4 tracks — used for the numbered list, and (only when no cover
+   * image is set) to derive the card's aura background colors. */
   tracks: StoryCardTrack[];
 }
 
@@ -40,11 +43,11 @@ function buildBlobs(tracks: TrackSeed[]) {
 // with inline pixel styles rather than Tailwind classes so the captured
 // image doesn't depend on the viewport it happens to be mounted in.
 export const StoryCard = forwardRef<HTMLDivElement, StoryCardProps>(function StoryCard(
-  { title, tracks },
+  { title, coverImageUrl, tracks },
   ref,
 ) {
   const topTracks = tracks.slice(0, 4);
-  const blobs = buildBlobs(tracks);
+  const blobs = coverImageUrl ? [] : buildBlobs(tracks);
 
   return (
     <div
@@ -64,22 +67,40 @@ export const StoryCard = forwardRef<HTMLDivElement, StoryCardProps>(function Sto
         textAlign: "left",
       }}
     >
-      {blobs.map((blob, index) => (
-        <div
-          key={index}
+      {coverImageUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element -- captured via html-to-image, not next/image
+        <img
+          src={coverImageUrl}
+          crossOrigin="anonymous"
+          alt=""
           style={{
             position: "absolute",
-            width: blob.size,
-            height: blob.size,
-            top: `${blob.top}%`,
-            left: `${blob.left}%`,
-            borderRadius: "9999px",
-            backgroundColor: blob.color,
-            filter: "blur(120px)",
-            opacity: 0.75,
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            filter: "blur(80px) brightness(0.55)",
+            transform: "scale(1.3)",
           }}
         />
-      ))}
+      ) : (
+        blobs.map((blob, index) => (
+          <div
+            key={index}
+            style={{
+              position: "absolute",
+              width: blob.size,
+              height: blob.size,
+              top: `${blob.top}%`,
+              left: `${blob.left}%`,
+              borderRadius: "9999px",
+              backgroundColor: blob.color,
+              filter: "blur(120px)",
+              opacity: 0.75,
+            }}
+          />
+        ))
+      )}
 
       <div
         style={{
@@ -113,6 +134,22 @@ export const StoryCard = forwardRef<HTMLDivElement, StoryCardProps>(function Sto
         >
           PLLS
         </div>
+
+        {coverImageUrl && (
+          // eslint-disable-next-line @next/next/no-img-element -- captured via html-to-image, not next/image
+          <img
+            src={coverImageUrl}
+            crossOrigin="anonymous"
+            alt=""
+            style={{
+              width: 720,
+              height: 720,
+              objectFit: "cover",
+              borderRadius: 32,
+              boxShadow: "0 40px 100px rgba(0,0,0,0.5)",
+            }}
+          />
+        )}
 
         <h1
           style={{

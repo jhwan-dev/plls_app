@@ -6,6 +6,7 @@ interface CreatePlaylistPayload {
   description: string;
   genre?: string;
   tracks: DraftTrack[];
+  coverImageUrl?: string | null;
 }
 
 interface CreatePlaylistResponse {
@@ -27,10 +28,23 @@ export async function createPlaylist(payload: CreatePlaylistPayload): Promise<Cr
         album: track.album,
         duration: track.duration,
       })),
+      coverImageUrl: payload.coverImageUrl ?? undefined,
     }),
   });
 
   return parseJsonResponse<CreatePlaylistResponse>(response);
+}
+
+export async function uploadDraftCover(file: File): Promise<{ coverImageUrl: string }> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch("/api/uploads/playlist-cover", {
+    method: "POST",
+    body: formData,
+  });
+
+  return parseJsonResponse<{ coverImageUrl: string }>(response);
 }
 
 export async function deletePlaylist(id: string): Promise<void> {

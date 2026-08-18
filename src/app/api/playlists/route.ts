@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { title, description, genre, tracks } = parsed.data;
+  const { title, description, genre, tracks, coverImageUrl } = parsed.data;
 
   try {
     const youtubeUrls = await Promise.all(
@@ -42,6 +42,7 @@ export async function POST(request: Request) {
         // Trust the client's `isCurator` for UX only — re-check server-side
         // so a non-curator can't set genre by calling the API directly.
         genre: session.user.isCurator ? genre : undefined,
+        coverImageUrl,
         userId: session.user.id,
         tracks: {
           create: tracks.map((track, index) => ({
