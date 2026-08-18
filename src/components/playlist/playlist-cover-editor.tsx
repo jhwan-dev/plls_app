@@ -63,13 +63,16 @@ export function PlaylistCoverEditor({
   }
 
   return (
-    <div className="flex flex-col gap-1.5">
-      {/* The aspect-ratio/width sizing lives on this div — same element type
-          and classes as the plain (non-editing) PlaylistCover usage. A
-          <button> carrying percentage/aspect-ratio sizing classes directly
-          (as this used to) doesn't reliably establish a height for the
-          Image `fill` child inside it; the button here is just an
-          `absolute inset-0` overlay on top of an already-sized div instead. */}
+    // No wrapping element around the sized box below — `className` (aspect
+    // ratio + width) needs to land on whatever is the *actual* flex item of
+    // the caller's layout. An extra unsized wrapper here previously broke
+    // that: on a fixed sm:w-64 desktop width it happened to still resolve,
+    // but on mobile — width-only-through-w-full, no fixed-px fallback — the
+    // wrapper had no way to hand down a resolvable width, so the image
+    // rendered at 0×0. The `hidden` file input has no layout footprint so it
+    // can safely sit alongside as a sibling; the (rare) error message does
+    // the same as an overlay rather than adding a second box to size.
+    <>
       <div className={cn("group relative overflow-hidden rounded-[3px]", className)}>
         <PlaylistCover coverImageUrl={coverImageUrl} tracks={tracks} alt={alt} className="size-full" />
 
@@ -97,6 +100,12 @@ export function PlaylistCoverEditor({
             <X className="size-4" />
           </button>
         )}
+
+        {error && (
+          <p className="absolute inset-x-0 bottom-0 bg-black/60 px-2 py-1 text-center text-xs text-white">
+            {error}
+          </p>
+        )}
       </div>
 
       <input
@@ -106,8 +115,6 @@ export function PlaylistCoverEditor({
         className="hidden"
         onChange={handleFileChange}
       />
-
-      {error && <p className="text-xs text-destructive">{error}</p>}
-    </div>
+    </>
   );
 }
