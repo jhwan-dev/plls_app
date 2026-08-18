@@ -49,8 +49,7 @@ export function PlaylistCoverEditor({
     }
   }
 
-  async function handleRemove(event: React.MouseEvent) {
-    event.stopPropagation();
+  async function handleRemove() {
     setIsUploading(true);
     setError(null);
 
@@ -65,39 +64,40 @@ export function PlaylistCoverEditor({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <button
-        type="button"
-        onClick={() => fileInputRef.current?.click()}
-        disabled={isUploading}
-        aria-label="커버 이미지 변경"
-        className={cn("group relative block overflow-hidden rounded-[3px]", className)}
-      >
+      {/* The aspect-ratio/width sizing lives on this div — same element type
+          and classes as the plain (non-editing) PlaylistCover usage. A
+          <button> carrying percentage/aspect-ratio sizing classes directly
+          (as this used to) doesn't reliably establish a height for the
+          Image `fill` child inside it; the button here is just an
+          `absolute inset-0` overlay on top of an already-sized div instead. */}
+      <div className={cn("group relative overflow-hidden rounded-[3px]", className)}>
         <PlaylistCover coverImageUrl={coverImageUrl} tracks={tracks} alt={alt} className="size-full" />
 
-        <span className="absolute inset-0 flex items-center justify-center gap-2 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isUploading}
+          aria-label="커버 이미지 변경"
+          className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
+        >
           {isUploading ? (
             <Loader2 className="size-5 animate-spin text-white" />
           ) : (
-            <>
-              <Camera className="size-5 text-white" />
-              {coverImageUrl && (
-                <span
-                  role="button"
-                  tabIndex={0}
-                  aria-label="커버 이미지 제거"
-                  onClick={handleRemove}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") handleRemove(event as unknown as React.MouseEvent);
-                  }}
-                  className="rounded-full bg-white/20 p-1.5 hover:bg-white/30"
-                >
-                  <X className="size-4 text-white" />
-                </span>
-              )}
-            </>
+            <Camera className="size-5 text-white" />
           )}
-        </span>
-      </button>
+        </button>
+
+        {!isUploading && coverImageUrl && (
+          <button
+            type="button"
+            onClick={handleRemove}
+            aria-label="커버 이미지 제거"
+            className="absolute top-2 right-2 rounded-full bg-black/40 p-1.5 text-white opacity-0 transition-opacity hover:bg-black/60 group-hover:opacity-100"
+          >
+            <X className="size-4" />
+          </button>
+        )}
+      </div>
 
       <input
         ref={fileInputRef}
