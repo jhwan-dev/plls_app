@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Music2 } from "lucide-react";
+import { BrandMark } from "@/components/brand/brand-mark";
 import { getPlaylistColors, type TrackSeed } from "@/lib/gradient";
 import { cn } from "@/lib/utils";
 
@@ -28,9 +28,13 @@ export function PlaylistCover({ coverImageUrl, tracks, alt, className, sizes = "
   }
 
   if (tracks.length === 0) {
+    // Explicit exception to BrandMark's usual "never a placeholder" rule
+    // (see its own doc comment) — for playlist covers specifically, the
+    // brand mark itself is the intended default thumbnail, not a stand-in
+    // for a missing photo.
     return (
-      <div className={cn("flex items-center justify-center bg-muted", className)}>
-        <Music2 className="size-6 text-muted-foreground" />
+      <div className={cn("flex items-center justify-center bg-white", className)}>
+        <BrandMark className="h-2/5" />
       </div>
     );
   }

@@ -14,7 +14,9 @@ const GLYPH_RATIO = "623 / 780";
  * public/brand/p-symbol.png), not a generic letter-in-a-shape icon. This is
  * the brand symbol itself: reserve it for real brand moments (header
  * lockup, splash, app icon) — never as a stand-in "no photo" placeholder,
- * see UserAvatar's own neutral fallback for that.
+ * see UserAvatar's own neutral fallback for that. The one deliberate
+ * exception is PlaylistCover's empty state, where the brand mark itself
+ * *is* the intended default thumbnail.
  */
 export function BrandMark({ className }: BrandMarkProps) {
   return (
