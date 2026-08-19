@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, type ChangeEvent } from "react";
-import { Camera, Loader2, X } from "lucide-react";
+import { Camera, ImagePlus, Loader2, X } from "lucide-react";
 import { PlaylistCover } from "@/components/playlist/playlist-cover";
 import type { TrackSeed } from "@/lib/gradient";
 import { cn } from "@/lib/utils";
@@ -19,7 +19,13 @@ interface PlaylistCoverEditorProps {
 
 /** Cover art with an upload/remove overlay. Used both for an already-saved
  * playlist's edit mode and for the in-progress draft on the search/create
- * page — see onUpload/onRemove for how the two differ. */
+ * page — see onUpload/onRemove for how the two differ.
+ *
+ * The empty state is deliberately its own "add a photo" tile, not
+ * PlaylistCover's P-mark default — that P mark is the *read-only* look for
+ * a playlist with no cover (feed cards, the view-mode page, OG image, Story
+ * card), which would otherwise make an editable, empty slot look like a
+ * finished, deliberate choice instead of an invitation to upload something. */
 export function PlaylistCoverEditor({
   coverImageUrl,
   onUpload,
@@ -74,30 +80,51 @@ export function PlaylistCoverEditor({
     // the same as an overlay rather than adding a second box to size.
     <>
       <div className={cn("group relative overflow-hidden rounded-[3px]", className)}>
-        <PlaylistCover coverImageUrl={coverImageUrl} tracks={tracks} alt={alt} className="size-full" />
+        {coverImageUrl ? (
+          <>
+            <PlaylistCover coverImageUrl={coverImageUrl} tracks={tracks} alt={alt} className="size-full" />
 
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={isUploading}
-          aria-label="커버 이미지 변경"
-          className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
-        >
-          {isUploading ? (
-            <Loader2 className="size-5 animate-spin text-white" />
-          ) : (
-            <Camera className="size-5 text-white" />
-          )}
-        </button>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              aria-label="커버 이미지 변경"
+              className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100"
+            >
+              {isUploading ? (
+                <Loader2 className="size-5 animate-spin text-white" />
+              ) : (
+                <Camera className="size-5 text-white" />
+              )}
+            </button>
 
-        {!isUploading && coverImageUrl && (
+            {!isUploading && (
+              <button
+                type="button"
+                onClick={handleRemove}
+                aria-label="커버 이미지 제거"
+                className="absolute top-2 right-2 rounded-full bg-black/40 p-1.5 text-white opacity-0 transition-opacity hover:bg-black/60 group-hover:opacity-100"
+              >
+                <X className="size-4" />
+              </button>
+            )}
+          </>
+        ) : (
           <button
             type="button"
-            onClick={handleRemove}
-            aria-label="커버 이미지 제거"
-            className="absolute top-2 right-2 rounded-full bg-black/40 p-1.5 text-white opacity-0 transition-opacity hover:bg-black/60 group-hover:opacity-100"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            aria-label="커버 이미지 추가"
+            className="flex size-full flex-col items-center justify-center gap-2 bg-muted text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
           >
-            <X className="size-4" />
+            {isUploading ? (
+              <Loader2 className="size-6 animate-spin" />
+            ) : (
+              <>
+                <ImagePlus className="size-8" />
+                <span className="text-xs font-medium">커버 사진 추가</span>
+              </>
+            )}
           </button>
         )}
 

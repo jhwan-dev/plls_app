@@ -24,7 +24,6 @@ import { PlaylistTrackRow } from "@/components/playlist/playlist-track-row";
 import { SortableDraftTrackRow } from "@/components/playlist/sortable-draft-track-row";
 import { TrackSearchAdd } from "@/components/playlist/track-search-add";
 import { LikeButton } from "@/components/playlist/like-button";
-import { ShareButton } from "@/components/playlist/share-button";
 import { PlaylistPlayButton } from "@/components/playlist/playlist-play-button";
 import { InstagramStoryShareButton } from "@/components/playlist/instagram-story-share-button";
 import { DeletePlaylistButton } from "@/components/playlist/delete-playlist-button";
@@ -241,7 +240,6 @@ export function PlaylistDetailBody({
                     initialCount={likeCount}
                     isAuthenticated={isAuthenticated}
                   />
-                  <ShareButton title={title} />
                   <InstagramStoryShareButton
                     playlistId={playlistId}
                     title={title}

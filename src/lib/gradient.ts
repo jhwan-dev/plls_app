@@ -26,8 +26,8 @@ function seedKey({ title, artist }: TrackSeed): string {
 /**
  * Deterministic color derived purely from a track's title+artist string — no
  * external artwork provider involved, so the same track always renders the
- * same color everywhere in the app (search results, playlist rows, the OG
- * image, the story card).
+ * same color everywhere it appears as track-level art (search results,
+ * playlist rows) via GradientTrackArt.
  */
 export function getTrackColor(track: TrackSeed): TrackColor {
   const hash = hashString(seedKey(track));
@@ -44,15 +44,6 @@ export function getTrackColor(track: TrackSeed): TrackColor {
     angle,
     solid: `hsl(${hue} 65% 45%)`,
   };
-}
-
-/**
- * Up to `count` colors representing a playlist as a set, drawn from its
- * first N tracks — the shared "color identity" used by the playlist cover
- * fallback, the OG image, and the story card's blob background.
- */
-export function getPlaylistColors(tracks: TrackSeed[], count = 4): TrackColor[] {
-  return tracks.slice(0, count).map(getTrackColor);
 }
 
 export function getInitial(track: TrackSeed): string {

@@ -111,7 +111,7 @@ export function InstagramStoryShareButton({
     <>
       <Button type="button" variant="outline" onClick={handleShare} disabled={isGenerating} className="shrink-0">
         {isGenerating ? <Loader2 className="size-4 animate-spin" /> : <Camera className="size-4" />}
-        인스타 스토리에 공유
+        인스타로 공유
       </Button>
 
       {/* Off-screen — laid out (not display:none) so html-to-image can

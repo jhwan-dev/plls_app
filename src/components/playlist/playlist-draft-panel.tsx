@@ -180,7 +180,7 @@ export function PlaylistDraftPanel({ isAuthenticated, isCurator }: PlaylistDraft
             저장 중...
           </>
         ) : (
-          "PLLS로 저장하고 공유하기"
+          "공유하기"
         )}
       </Button>
     </div>
