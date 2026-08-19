@@ -71,6 +71,20 @@ export const usePlaylistDraftStore = create<PlaylistDraftState>()(
       // Keeps an in-progress playlist across accidental refreshes/tab closes;
       // cleared explicitly once the draft is saved (see `clear()` above).
       name: "plls-playlist-draft",
+      // Bumped once, when the track shape changed (deezerTrackId/coverUrl/
+      // previewUrl -> itunesTrackId, no cover/preview fields at all — see
+      // the iTunes migration). Without this, a browser with an old draft
+      // still in localStorage would silently fail to save: the stale
+      // tracks lack `itunesTrackId`, which the server rejects, and the
+      // resulting error message gives no hint why. Discarding on mismatch
+      // is safe — this is only ever an unsaved, in-progress draft.
+      version: 1,
+      migrate: (persistedState, version) => {
+        if (version < 1) {
+          return { title: "", description: "", genre: "", tracks: [], coverImageUrl: null };
+        }
+        return persistedState as PlaylistDraftState;
+      },
     },
   ),
 );
