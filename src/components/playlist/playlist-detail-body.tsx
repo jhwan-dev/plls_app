@@ -44,6 +44,7 @@ interface PlaylistDetailBodyProps {
   isAuthenticated: boolean;
   initialLiked: boolean;
   likeCount: number;
+  createdAt: string;
 }
 
 export function PlaylistDetailBody({
@@ -58,6 +59,7 @@ export function PlaylistDetailBody({
   isAuthenticated,
   initialLiked,
   likeCount,
+  createdAt,
 }: PlaylistDetailBodyProps) {
   const router = useRouter();
   const [title, setTitle] = useState(initialTitle);
@@ -243,8 +245,12 @@ export function PlaylistDetailBody({
                   <InstagramStoryShareButton
                     playlistId={playlistId}
                     title={title}
+                    description={initialDescription}
                     coverImageUrl={coverImageUrl}
-                    tracks={tracks.slice(0, 4).map((track) => ({ title: track.title, artist: track.artist }))}
+                    tracks={tracks.map((track) => ({ title: track.title, artist: track.artist, duration: track.duration }))}
+                    curatorName={ownerName ?? "익명"}
+                    createdAt={createdAt}
+                    likeCount={likeCount}
                   />
                   {isOwner && (
                     <>

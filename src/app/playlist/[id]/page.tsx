@@ -78,6 +78,7 @@ export default async function PlaylistPage({ params }: PageProps<"/playlist/[id]
       isAuthenticated={!!userId}
       initialLiked={!!viewerLike}
       likeCount={playlist._count.likes}
+      createdAt={playlist.createdAt.toISOString()}
     />
   );
 }

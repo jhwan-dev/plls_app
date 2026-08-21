@@ -2,14 +2,14 @@
 
 import { useRef, useState } from "react";
 import { toPng } from "html-to-image";
-import { Camera, Loader2 } from "lucide-react";
+import { Camera, Loader2, Shuffle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
-import { StoryCard } from "@/components/playlist/story-card";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
+import { StoryPosterCard } from "@/components/playlist/story-poster-card";
+import { ALL_TEMPLATE_IDS, buildPosterData, type PosterData, type TemplateId } from "@/lib/story-poster-data";
 
-// Only relevant when a cover image is set (see StoryCard) — capturing before
-// it's loaded can rasterize a blank frame. No-op when the card has no <img>
-// at all (gradient-blob background, the common case).
+// Capturing before an image finishes loading can rasterize a blank frame.
 async function waitForImages(container: HTMLElement) {
   const imgs = Array.from(container.querySelectorAll("img"));
   await Promise.all(
@@ -24,34 +24,74 @@ async function waitForImages(container: HTMLElement) {
   );
 }
 
+function pickRandomTemplate(exclude?: TemplateId): TemplateId {
+  const pool = exclude ? ALL_TEMPLATE_IDS.filter((id) => id !== exclude) : ALL_TEMPLATE_IDS;
+  return pool[Math.floor(Math.random() * pool.length)]!;
+}
+
+// On-screen preview width — the actual card always renders at its native
+// 1080x1920, scaled down visually so the capture (off-screen, unscaled) is
+// never affected by the preview's CSS transform.
+const PREVIEW_WIDTH = 260;
+const PREVIEW_SCALE = PREVIEW_WIDTH / 1080;
+
 interface InstagramStoryShareButtonProps {
   playlistId: string;
   title: string;
+  description: string | null;
   coverImageUrl?: string | null;
-  tracks: { title: string; artist: string }[];
+  tracks: { title: string; artist: string; duration: number }[];
+  curatorName: string;
+  createdAt: string;
+  likeCount: number;
 }
 
 export function InstagramStoryShareButton({
   playlistId,
   title,
+  description,
   coverImageUrl,
   tracks,
+  curatorName,
+  createdAt,
+  likeCount,
 }: InstagramStoryShareButtonProps) {
-  const cardRef = useRef<HTMLDivElement>(null);
+  const captureRef = useRef<HTMLDivElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [templateId, setTemplateId] = useState<TemplateId>(() => pickRandomTemplate());
+
+  const data: PosterData = buildPosterData({
+    title,
+    description,
+    coverImageUrl: coverImageUrl ?? null,
+    tracks,
+    curatorName,
+    createdAt: new Date(createdAt),
+    likeCount,
+  });
+
+  function handleOpen() {
+    setTemplateId(pickRandomTemplate());
+    setIsOpen(true);
+  }
+
+  function handleShuffle() {
+    setTemplateId((current) => pickRandomTemplate(current));
+  }
 
   async function handleShare() {
-    if (!cardRef.current || isGenerating) return;
+    if (!captureRef.current || isGenerating) return;
     setIsGenerating(true);
 
     try {
-      await waitForImages(cardRef.current);
-      const dataUrl = await toPng(cardRef.current, {
+      await waitForImages(captureRef.current);
+      const dataUrl = await toPng(captureRef.current, {
         width: 1080,
         height: 1920,
         pixelRatio: 1,
         cacheBust: true,
-        backgroundColor: "#0f172a",
+        backgroundColor: "#ffffff",
       });
 
       const playlistUrl = `${window.location.origin}/playlist/${playlistId}`;
@@ -96,6 +136,7 @@ export function InstagramStoryShareButton({
         description: "인스타 스토리에서 링크 스티커를 추가하고, 복사된 플레이리스트 링크를 붙여넣으세요!",
         type: "success",
       });
+      setIsOpen(false);
     } catch (err) {
       toast.add({
         title: "이미지 생성에 실패했어요",
@@ -109,15 +150,43 @@ export function InstagramStoryShareButton({
 
   return (
     <>
-      <Button type="button" variant="outline" onClick={handleShare} disabled={isGenerating} className="shrink-0">
-        {isGenerating ? <Loader2 className="size-4 animate-spin" /> : <Camera className="size-4" />}
+      <Button type="button" variant="outline" onClick={handleOpen} className="shrink-0">
+        <Camera className="size-4" />
         인스타로 공유
       </Button>
 
-      {/* Off-screen — laid out (not display:none) so html-to-image can
-          rasterize it, but never visible to the user. */}
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetContent side="bottom" className="items-center">
+          <SheetHeader className="items-center text-center">
+            <SheetTitle>스토리 카드 미리보기</SheetTitle>
+          </SheetHeader>
+
+          <div
+            style={{ width: PREVIEW_WIDTH, height: 1920 * PREVIEW_SCALE, overflow: "hidden" }}
+            className="rounded-lg border border-border shadow-sm"
+          >
+            <div style={{ transform: `scale(${PREVIEW_SCALE})`, transformOrigin: "top left" }}>
+              <StoryPosterCard templateId={templateId} data={data} />
+            </div>
+          </div>
+
+          <SheetFooter className="w-full flex-row gap-2">
+            <Button type="button" variant="outline" onClick={handleShuffle} disabled={isGenerating} className="flex-1">
+              <Shuffle className="size-4" />
+              템플릿 바꾸기
+            </Button>
+            <Button type="button" onClick={handleShare} disabled={isGenerating} className="flex-1">
+              {isGenerating ? <Loader2 className="size-4 animate-spin" /> : <Camera className="size-4" />}
+              공유하기
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+
+      {/* Off-screen, full resolution — laid out (not display:none) so
+          html-to-image can rasterize it, but never visible to the user. */}
       <div style={{ position: "fixed", top: 0, left: -10_000, pointerEvents: "none" }} aria-hidden="true">
-        <StoryCard ref={cardRef} title={title} coverImageUrl={coverImageUrl} tracks={tracks} />
+        <StoryPosterCard ref={captureRef} templateId={templateId} data={data} />
       </div>
     </>
   );
