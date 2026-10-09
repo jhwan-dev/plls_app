@@ -195,7 +195,7 @@ export function PlaylistDetailBody({
                 className="font-display h-auto w-full rounded-none border-0 border-b-2 border-foreground/30 bg-transparent px-0 py-0 text-4xl text-foreground shadow-none focus-visible:border-primary focus-visible:ring-0 sm:text-5xl"
               />
             ) : (
-              <h1 className="font-display text-4xl leading-[1.05] text-foreground sm:text-5xl">{title}</h1>
+              <h1 className="font-display text-4xl leading-[1.15] text-foreground sm:text-5xl">{title}</h1>
             )}
           </div>
 
@@ -287,7 +287,7 @@ export function PlaylistDetailBody({
           <TrackSearchAdd onAdd={handleAddTrack} />
         </div>
       ) : (
-        <div className="flex flex-col border-t border-border">
+        <div className="flex flex-col divide-y divide-border border-t border-border">
           {tracks.map((track) => (
             <PlaylistTrackRow
               key={track.id}

@@ -111,7 +111,7 @@ export default async function Home() {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-14 px-4 pt-10 pb-8">
-      <h1 className="font-display text-4xl leading-[1.05] text-foreground sm:text-5xl">
+      <h1 className="font-display text-4xl leading-[1.15] text-foreground sm:text-5xl">
         오늘의 취향을
         <br />
         골라보세요.

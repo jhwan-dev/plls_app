@@ -22,7 +22,7 @@ export function TrackRow({ track, action }: TrackRowProps) {
         {track.album}
       </p>
 
-      <p className="w-10 shrink-0 text-right font-mono text-xs text-muted-foreground tabular-nums">
+      <p className="w-10 shrink-0 text-right font-pixel text-xs text-muted-foreground tabular-nums">
         {formatDuration(track.duration)}
       </p>
 

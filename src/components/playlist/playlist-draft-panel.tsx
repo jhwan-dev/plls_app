@@ -71,7 +71,7 @@ export function PlaylistDraftPanel({ isAuthenticated, isCurator }: PlaylistDraft
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-baseline justify-between gap-4 border-b border-border pb-3">
-        <h2 className="font-display text-2xl tracking-tight text-foreground">My PLLS</h2>
+        <h2 className="font-display text-2xl text-foreground">My PLLS</h2>
         <span className="font-mono text-xs text-muted-foreground">{tracks.length}곡</span>
       </div>
 

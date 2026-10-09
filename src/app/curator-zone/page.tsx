@@ -38,7 +38,7 @@ export default async function CuratorZonePage() {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-14 px-4 pt-10 pb-8">
-      <h1 className="font-display text-4xl leading-[1.05] text-foreground sm:text-5xl">
+      <h1 className="font-display text-4xl leading-[1.15] text-foreground sm:text-5xl">
         아티스트, 플레이스, 큐레이터가
         <br />
         고른 사운드.
@@ -49,7 +49,7 @@ export default async function CuratorZonePage() {
         return (
           <div key={section.type} className="flex flex-col gap-4">
             <div className="border-b border-border pb-3">
-              <h2 className="font-display text-2xl tracking-tight text-foreground">{section.label}</h2>
+              <h2 className="font-display text-2xl text-foreground">{section.label}</h2>
             </div>
 
             {playlists.length === 0 ? (

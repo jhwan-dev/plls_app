@@ -35,8 +35,8 @@ export function DiscoverFeed({ sections, isAuthenticated }: DiscoverFeedProps) {
             <h2
               className={
                 section.accent
-                  ? "font-display text-2xl tracking-tight text-primary"
-                  : "font-display text-2xl tracking-tight text-foreground"
+                  ? "font-display text-2xl text-primary"
+                  : "font-display text-2xl text-foreground"
               }
             >
               {section.label}

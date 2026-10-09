@@ -23,7 +23,7 @@ export default async function CuratedPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pt-10 pb-8">
-      <h1 className="font-display text-4xl leading-[1.05] text-foreground sm:text-5xl">
+      <h1 className="font-display text-4xl leading-[1.15] text-foreground sm:text-5xl">
         큐레이터가 고른
         <br />
         오늘의 사운드.

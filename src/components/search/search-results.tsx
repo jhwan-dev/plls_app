@@ -118,7 +118,7 @@ export function SearchResults({
 
     return (
       <div className="flex flex-col gap-4">
-        <h2 className="font-display border-b border-border pb-3 text-2xl tracking-tight text-foreground">
+        <h2 className="font-display border-b border-border pb-3 text-2xl text-foreground">
           Trending on PLLS
         </h2>
         <AddableTrackList tracks={trendingTracks} onAddTrack={onAddTrack} />

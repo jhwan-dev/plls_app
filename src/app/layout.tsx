@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Black_Han_Sans } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans_KR, Space_Mono, Silkscreen } from "next/font/google";
 import "./globals.css";
 import { auth } from "@/lib/auth";
 import { QueryProvider } from "@/components/providers/query-provider";
@@ -10,24 +10,35 @@ import { SplashScreen } from "@/components/brand/splash-screen";
 import { Toaster } from "@/components/ui/toast";
 import { displayName } from "@/lib/user-display";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Retro LCD/mono type system (see "PLLS Redesign" design doc, turns 6-7):
+// IBM Plex Mono carries body/list text, Space Mono carries screen and
+// section titles, and Silkscreen carries short all-caps/numeric meta
+// (counts, durations) — never Korean, which mixes badly with a pixel face.
+// IBM Plex Sans KR rides along in every stack below as the Hangul fallback,
+// so Korean titles/nicknames/body copy render in the same Plex family
+// instead of dropping to a system font per-glyph.
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-mono-ui",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const plexSansKr = IBM_Plex_Sans_KR({
+  variable: "--font-sans-kr",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
-// Bold poster-weight display face for headlines and the wordmark — carries
-// Korean and Latin glyphs equally, so "PLLS" and "오늘의 취향을 골라보세요"
-// headlines read with the same editorial weight instead of one falling back
-// to a system font.
-const blackHanSans = Black_Han_Sans({
-  variable: "--font-display",
+const spaceMono = Space_Mono({
+  variable: "--font-mono-title",
   subsets: ["latin"],
-  weight: "400",
+  weight: ["400", "700"],
+});
+
+const silkscreen = Silkscreen({
+  variable: "--font-silkscreen",
+  subsets: ["latin"],
+  weight: ["400", "700"],
 });
 
 export const metadata: Metadata = {
@@ -45,7 +56,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="ko"
-      className={`${geistSans.variable} ${geistMono.variable} ${blackHanSans.variable} min-h-[100dvh] antialiased`}
+      className={`${plexMono.variable} ${plexSansKr.variable} ${spaceMono.variable} ${silkscreen.variable} min-h-[100dvh] antialiased`}
     >
       {/* dvh (not vh) — vh is known to misreport on some in-app browsers
           (e.g. Instagram's) whose chrome height changes without resizing

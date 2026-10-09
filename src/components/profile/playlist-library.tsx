@@ -23,7 +23,7 @@ export function PlaylistLibrary({ playlists, isOwnProfile, isAuthenticated }: Pl
   return (
     <section className="flex flex-col gap-5">
       <div className="flex items-baseline justify-between gap-4 border-b border-border pb-3">
-        <h2 className="font-display text-2xl tracking-tight text-foreground">My Sound</h2>
+        <h2 className="font-display text-2xl text-foreground">My Sound</h2>
         {isOwnProfile && (
           <Link
             href="/search"

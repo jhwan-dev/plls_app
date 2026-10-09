@@ -55,7 +55,7 @@ export function SortableDraftTrackRow({ track, onRemove, disabled }: SortableDra
         <p className="truncate text-xs text-muted-foreground leading-tight">{track.artist}</p>
       </div>
 
-      <p className="shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
+      <p className="shrink-0 font-pixel text-xs text-muted-foreground tabular-nums">
         {formatDuration(track.duration)}
       </p>
 

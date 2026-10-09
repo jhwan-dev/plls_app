@@ -68,7 +68,7 @@ export function LikeButton({
         onClick={handleClick}
         disabled={isPending}
         className={cn(
-          "inline-flex shrink-0 items-center gap-1 font-mono text-xs tabular-nums transition-colors",
+          "inline-flex shrink-0 items-center gap-1 font-pixel text-xs tabular-nums transition-colors",
           liked ? "text-primary" : "text-muted-foreground hover:text-foreground",
         )}
       >
@@ -85,7 +85,7 @@ export function LikeButton({
       size="sm"
       onClick={handleClick}
       disabled={isPending}
-      className="shrink-0"
+      className="shrink-0 font-pixel tabular-nums"
     >
       <Heart className={cn("size-4", liked && "fill-current")} />
       {count}
