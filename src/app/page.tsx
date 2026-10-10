@@ -26,6 +26,7 @@ interface RawPlaylist {
   user: { id: string; name: string | null; nickname: string | null; image: string | null } | null;
 }
 
+
 export default async function Home() {
   const session = await auth();
   const userId = session?.user?.id;
@@ -52,6 +53,7 @@ export default async function Home() {
     title: playlist.title,
     coverImageUrl: playlist.coverImageUrl,
     tracks: playlist.tracks,
+    trackCount: playlist._count.tracks,
     likeCount: playlist._count.likes,
     initialLiked: likedIds.has(playlist.id),
     owner: playlist.user,
@@ -117,7 +119,7 @@ export default async function Home() {
         골라보세요.
       </h1>
 
-      <DiscoverFeed sections={sections} isAuthenticated={!!userId} />
+      <DiscoverFeed sections={sections} />
     </div>
   );
 }

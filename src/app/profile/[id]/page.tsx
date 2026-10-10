@@ -4,7 +4,6 @@ import { Heart, UserPlus, Users } from "lucide-react";
 import { notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getUserProfile, isFollowing } from "@/lib/profile";
-import { getLikedPlaylistIds } from "@/lib/discover";
 import { displayName } from "@/lib/user-display";
 import { FollowButton } from "@/components/profile/follow-button";
 import { ProfileHeroCard } from "@/components/profile/profile-hero-card";
@@ -35,12 +34,6 @@ export default async function ProfilePage({ params }: PageProps<"/profile/[id]">
   const viewerId = session?.user?.id;
   const isOwnProfile = viewerId === id;
   const viewerFollows = viewerId && !isOwnProfile ? await isFollowing(viewerId, id) : false;
-  const likedIds = viewerId
-    ? await getLikedPlaylistIds(
-        viewerId,
-        profile.playlists.map((playlist) => playlist.id),
-      )
-    : new Set<string>();
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-12 px-4 pt-10 pb-8">
@@ -53,10 +46,10 @@ export default async function ProfilePage({ params }: PageProps<"/profile/[id]">
         />
 
         <div className="flex items-baseline gap-8">
-          <p className="font-display text-xl leading-none text-foreground">
+          <p className="font-pixel text-xl leading-none text-foreground">
             {profile.playlists.length} PLLS
           </p>
-          <div className="flex items-baseline gap-4 text-sm text-muted-foreground">
+          <div className="font-pixel flex items-baseline gap-4 text-sm text-muted-foreground">
             <span className="flex items-center gap-1 text-primary">
               <Heart className="size-3.5 fill-current" />
               {profile.totalLikesReceived}
@@ -89,14 +82,12 @@ export default async function ProfilePage({ params }: PageProps<"/profile/[id]">
 
       <PlaylistLibrary
         isOwnProfile={isOwnProfile}
-        isAuthenticated={!!viewerId}
         playlists={profile.playlists.map((playlist) => ({
           id: playlist.id,
           title: playlist.title,
           coverImageUrl: playlist.coverImageUrl,
           tracks: playlist.tracks,
-          likeCount: playlist._count.likes,
-          initialLiked: likedIds.has(playlist.id),
+          trackCount: playlist._count.tracks,
         }))}
       />
     </div>

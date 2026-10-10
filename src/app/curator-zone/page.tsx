@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import { auth } from "@/lib/auth";
-import { getCuratorZonePlaylists, getLikedPlaylistIds } from "@/lib/discover";
-import { EditorialPlaylistCard } from "@/components/playlist/editorial-playlist-card";
+import { getCuratorZonePlaylists } from "@/lib/discover";
+import { PlaylistListRow } from "@/components/playlist/playlist-list-row";
 import type { CuratorType } from "@/generated/prisma/client";
 
 export const metadata: Metadata = {
@@ -29,12 +28,7 @@ const SECTIONS: { type: CuratorType; label: string; emptyMessage: string }[] = [
 ];
 
 export default async function CuratorZonePage() {
-  const session = await auth();
-  const userId = session?.user?.id;
-
   const groups = await getCuratorZonePlaylists();
-  const allIds = SECTIONS.flatMap((section) => groups[section.type].map((playlist) => playlist.id));
-  const likedIds = userId ? await getLikedPlaylistIds(userId, allIds) : new Set<string>();
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-14 px-4 pt-10 pb-8">
@@ -48,25 +42,23 @@ export default async function CuratorZonePage() {
         const playlists = groups[section.type];
         return (
           <div key={section.type} className="flex flex-col gap-4">
-            <div className="border-b border-border pb-3">
-              <h2 className="font-display text-2xl text-foreground">{section.label}</h2>
+            <div className="border-b border-border pb-2">
+              <h2 className="font-display text-base text-foreground">{section.label}</h2>
             </div>
 
             {playlists.length === 0 ? (
               <p className="py-8 text-center text-sm text-muted-foreground">{section.emptyMessage}</p>
             ) : (
-              <div className="grid grid-cols-2 gap-x-4 gap-y-8">
+              <div className="flex flex-col divide-y divide-border border-t border-border">
                 {playlists.map((playlist) => (
-                  <EditorialPlaylistCard
+                  <PlaylistListRow
                     key={playlist.id}
                     id={playlist.id}
                     title={playlist.title}
                     coverImageUrl={playlist.coverImageUrl}
                     tracks={playlist.tracks}
+                    trackCount={playlist._count.tracks}
                     owner={playlist.user}
-                    initialLiked={likedIds.has(playlist.id)}
-                    likeCount={playlist._count.likes}
-                    isAuthenticated={!!userId}
                   />
                 ))}
               </div>

@@ -1,4 +1,4 @@
-import { EditorialPlaylistCardSkeleton } from "@/components/playlist/editorial-playlist-card-skeleton";
+import { PlaylistListRowSkeleton } from "@/components/playlist/playlist-list-row-skeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ProfileLoading() {
@@ -11,11 +11,11 @@ export default function ProfileLoading() {
         <Skeleton className="h-9 w-24" />
       </div>
 
-      <div className="flex flex-col gap-5">
-        <Skeleton className="h-8 w-28" />
-        <div className="grid grid-cols-2 gap-x-4 gap-y-8">
+      <div className="flex flex-col">
+        <Skeleton className="mb-3 h-5 w-28" />
+        <div className="flex flex-col divide-y divide-border">
           {Array.from({ length: 4 }).map((_, i) => (
-            <EditorialPlaylistCardSkeleton key={i} />
+            <PlaylistListRowSkeleton key={i} />
           ))}
         </div>
       </div>

@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { Plus } from "lucide-react";
-import { EditorialPlaylistCard } from "@/components/playlist/editorial-playlist-card";
+import { PlaylistListRow } from "@/components/playlist/playlist-list-row";
 import type { TrackSeed } from "@/lib/gradient";
 
 interface LibraryPlaylist {
@@ -8,49 +7,52 @@ interface LibraryPlaylist {
   title: string;
   coverImageUrl: string | null;
   tracks: TrackSeed[];
-  likeCount: number;
-  initialLiked: boolean;
+  trackCount: number;
 }
 
 interface PlaylistLibraryProps {
   playlists: LibraryPlaylist[];
-  /** Only the profile owner sees the "새 플레이리스트" shortcut. */
+  /** Only the profile owner sees the "새 플레이리스트" row. */
   isOwnProfile: boolean;
-  isAuthenticated: boolean;
 }
 
-export function PlaylistLibrary({ playlists, isOwnProfile, isAuthenticated }: PlaylistLibraryProps) {
+/** PLLS Redesign's "Playlist List" pattern (turn 7, 7b): a row list with a
+ * Silkscreen total-count badge in the header and, for the owner, a
+ * "+ New Playlist" row appended to the list instead of a header icon. */
+export function PlaylistLibrary({ playlists, isOwnProfile }: PlaylistLibraryProps) {
   return (
-    <section className="flex flex-col gap-5">
-      <div className="flex items-baseline justify-between gap-4 border-b border-border pb-3">
-        <h2 className="font-display text-2xl text-foreground">My Sound</h2>
-        {isOwnProfile && (
-          <Link
-            href="/search"
-            aria-label="새 플레이리스트 만들기"
-            className="flex size-7 shrink-0 items-center justify-center text-muted-foreground hover:text-foreground"
-          >
-            <Plus className="size-4" />
-          </Link>
-        )}
+    <section className="flex flex-col">
+      <div className="flex items-baseline justify-between gap-4 border-b border-border pb-2">
+        <h2 className="font-display text-base text-foreground">My Sound</h2>
+        <span className="font-pixel text-[10px] tracking-wider text-muted-foreground uppercase">
+          {playlists.length} total
+        </span>
       </div>
 
-      {playlists.length === 0 ? (
+      {playlists.length === 0 && !isOwnProfile ? (
         <p className="py-16 text-center text-sm text-muted-foreground">아직 만든 플레이리스트가 없어요.</p>
       ) : (
-        <div className="grid grid-cols-2 gap-x-4 gap-y-8">
+        <div className="flex flex-col divide-y divide-border">
           {playlists.map((playlist) => (
-            <EditorialPlaylistCard
+            <PlaylistListRow
               key={playlist.id}
               id={playlist.id}
               title={playlist.title}
               coverImageUrl={playlist.coverImageUrl}
               tracks={playlist.tracks}
-              initialLiked={playlist.initialLiked}
-              likeCount={playlist.likeCount}
-              isAuthenticated={isAuthenticated}
+              trackCount={playlist.trackCount}
             />
           ))}
+
+          {isOwnProfile && (
+            <Link
+              href="/search"
+              className="flex items-center gap-3 py-3 text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <span className="font-pixel w-11 shrink-0 text-center text-sm">+</span>
+              <span className="text-sm">새 플레이리스트</span>
+            </Link>
+          )}
         </div>
       )}
     </section>

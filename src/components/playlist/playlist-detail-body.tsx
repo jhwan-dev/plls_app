@@ -288,9 +288,10 @@ export function PlaylistDetailBody({
         </div>
       ) : (
         <div className="flex flex-col divide-y divide-border border-t border-border">
-          {tracks.map((track) => (
+          {tracks.map((track, index) => (
             <PlaylistTrackRow
               key={track.id}
+              index={index + 1}
               title={track.title}
               artist={track.artist}
               album={track.album}

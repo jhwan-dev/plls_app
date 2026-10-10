@@ -1,4 +1,4 @@
-import { EditorialPlaylistCardSkeleton } from "@/components/playlist/editorial-playlist-card-skeleton";
+import { PlaylistListRowSkeleton } from "@/components/playlist/playlist-list-row-skeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function CuratedLoading() {
@@ -8,9 +8,9 @@ export default function CuratedLoading() {
         <Skeleton className="h-10 w-64" />
         <Skeleton className="h-10 w-48" />
       </div>
-      <div className="grid grid-cols-2 gap-x-4 gap-y-8">
+      <div className="flex flex-col divide-y divide-border border-t border-border">
         {Array.from({ length: 6 }).map((_, i) => (
-          <EditorialPlaylistCardSkeleton key={i} />
+          <PlaylistListRowSkeleton key={i} />
         ))}
       </div>
     </div>

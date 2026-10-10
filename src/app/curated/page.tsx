@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import { auth } from "@/lib/auth";
-import { getCuratedPlaylists, getLikedPlaylistIds } from "@/lib/discover";
-import { EditorialPlaylistCard } from "@/components/playlist/editorial-playlist-card";
+import { getCuratedPlaylists } from "@/lib/discover";
+import { PlaylistListRow } from "@/components/playlist/playlist-list-row";
 
 export const metadata: Metadata = {
   // `absolute` skips the root "%s | PLLS" template — "Curator's PLLS | PLLS" would be redundant.
@@ -10,16 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default async function CuratedPage() {
-  const session = await auth();
-  const userId = session?.user?.id;
-
   const playlists = await getCuratedPlaylists();
-  const likedIds = userId
-    ? await getLikedPlaylistIds(
-        userId,
-        playlists.map((playlist) => playlist.id),
-      )
-    : new Set<string>();
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 pt-10 pb-8">
@@ -34,18 +24,16 @@ export default async function CuratedPage() {
           아직 소개된 플레이리스트가 없어요.
         </p>
       ) : (
-        <div className="grid grid-cols-2 gap-x-4 gap-y-8">
+        <div className="flex flex-col divide-y divide-border border-t border-border">
           {playlists.map((playlist) => (
-            <EditorialPlaylistCard
+            <PlaylistListRow
               key={playlist.id}
               id={playlist.id}
               title={playlist.title}
               coverImageUrl={playlist.coverImageUrl}
               tracks={playlist.tracks}
+              trackCount={playlist._count.tracks}
               owner={playlist.user}
-              initialLiked={likedIds.has(playlist.id)}
-              likeCount={playlist._count.likes}
-              isAuthenticated={!!userId}
             />
           ))}
         </div>
