@@ -1,6 +1,3 @@
-import { SquarePlay } from "lucide-react";
-import { Button } from "@/components/ui/button";
-
 interface PlaylistPlayButtonProps {
   /** Tracks in playback order — only ones with a matched video are included. */
   tracks: { youtubeUrl: string | null }[];
@@ -20,6 +17,10 @@ function extractVideoId(youtubeUrl: string): string | null {
  * link (new tab), never an embed. Tracks with no matched video (see
  * track-link.ts) are simply skipped rather than substituted with a search
  * link, since that has no video id to include in the queue.
+ *
+ * Renders as PLLS Redesign's full-width "Play on YouTube" bar (turn 7, 7c)
+ * rather than a chip button — it owns that bar's whole look so Playlist
+ * Detail doesn't render an empty bar shell when nothing is playable.
  */
 export function PlaylistPlayButton({ tracks }: PlaylistPlayButtonProps) {
   const videoIds = tracks
@@ -33,13 +34,14 @@ export function PlaylistPlayButton({ tracks }: PlaylistPlayButtonProps) {
   const href = `https://www.youtube.com/watch_videos?video_ids=${videoIds.join(",")}`;
 
   return (
-    <Button
-      variant="outline"
-      className="shrink-0"
-      render={<a href={href} target="_blank" rel="noopener noreferrer" />}
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex h-11 shrink-0 items-center border-y border-border bg-card px-3 transition-colors hover:bg-accent/50"
     >
-      <SquarePlay className="size-4" />
-      전체 재생
-    </Button>
+      <span className="flex-1 text-sm font-medium text-foreground">▶ 전체 재생</span>
+      <span className="font-pixel text-[10px] text-muted-foreground">YT</span>
+    </a>
   );
 }

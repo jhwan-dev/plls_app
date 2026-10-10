@@ -28,6 +28,7 @@ import { PlaylistPlayButton } from "@/components/playlist/playlist-play-button";
 import { InstagramStoryShareButton } from "@/components/playlist/instagram-story-share-button";
 import { DeletePlaylistButton } from "@/components/playlist/delete-playlist-button";
 import { EditableDescription } from "@/components/playlist/editable-description";
+import { ScreenHeader } from "@/components/layout/screen-header";
 import { updatePlaylist, updatePlaylistCover, removePlaylistCover } from "@/lib/api/playlist-client";
 import type { DraftTrack } from "@/types/playlist";
 import type { Track } from "@/types/track";
@@ -148,41 +149,50 @@ export function PlaylistDetailBody({
     artist: track.artist,
   }));
   const ownerName = owner?.name ?? null;
+  const visibleTracks = isEditing ? draftTracks : tracks;
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-10 px-4 pt-10 pb-8">
-      {/* Mobile: cover on top, then editorial credit block below.
-          sm+: cover on the left, credit block beside it — a magazine spread. */}
-      <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:items-start sm:gap-8 sm:text-left">
-        {isOwner && isEditing ? (
-          <PlaylistCoverEditor
-            coverImageUrl={coverImageUrl}
-            onUpload={async (file) => {
-              const result = await updatePlaylistCover(playlistId, file);
-              setCoverImageUrl(result.coverImageUrl);
-              return result.coverImageUrl;
-            }}
-            onRemove={async () => {
-              await removePlaylistCover(playlistId);
-              setCoverImageUrl(null);
-            }}
-            tracks={trackSeeds}
-            alt={title}
-            className="aspect-[4/5] w-full max-w-[280px] shrink-0 sm:w-64"
-          />
-        ) : (
-          <PlaylistCover
-            coverImageUrl={coverImageUrl}
-            tracks={trackSeeds}
-            alt={title}
-            className="aspect-[4/5] w-full max-w-[280px] shrink-0 rounded-[3px] sm:w-64"
-            sizes="(max-width: 640px) 280px, 256px"
-          />
-        )}
+    <div className="mx-auto flex w-full max-w-2xl flex-col">
+      {/* The design doc's header names the screen you came *from* ("< Browse")
+          — this page can be reached from several different lists, so "Back"
+          stands in generically rather than naming one of them. */}
+      <ScreenHeader title="Back" useHistoryBack meta={`${visibleTracks.length} tracks`} />
 
-        <div className="flex flex-1 flex-col items-center gap-4 sm:items-start">
-          <div className="flex w-full flex-col gap-1.5">
-            {genre && <p className="font-mono text-xs tracking-[0.15em] text-primary uppercase">{genre}</p>}
+      <div className="flex flex-col px-3">
+        {/* Always a side-by-side hero — PLLS Redesign's cover+info row
+            (turn 7, 7c) doesn't restack on narrow viewports; the mock's own
+            frame *is* the narrow viewport. */}
+        <div className="flex gap-3.5 py-3.5">
+          {isOwner && isEditing ? (
+            <PlaylistCoverEditor
+              coverImageUrl={coverImageUrl}
+              onUpload={async (file) => {
+                const result = await updatePlaylistCover(playlistId, file);
+                setCoverImageUrl(result.coverImageUrl);
+                return result.coverImageUrl;
+              }}
+              onRemove={async () => {
+                await removePlaylistCover(playlistId);
+                setCoverImageUrl(null);
+              }}
+              tracks={trackSeeds}
+              alt={title}
+              className="aspect-square w-36 shrink-0 sm:w-40"
+            />
+          ) : (
+            <PlaylistCover
+              coverImageUrl={coverImageUrl}
+              tracks={trackSeeds}
+              alt={title}
+              className="aspect-square w-36 shrink-0 rounded-[2px] sm:w-40"
+              sizes="160px"
+            />
+          )}
+
+          <div className="flex min-w-0 flex-1 flex-col gap-1.5 pt-0.5">
+            {genre && (
+              <span className="font-pixel text-[10px] tracking-wider text-primary uppercase">{genre}</span>
+            )}
             {isEditing ? (
               <Input
                 value={draftTitle}
@@ -190,117 +200,140 @@ export function PlaylistDetailBody({
                 disabled={isSaving}
                 maxLength={200}
                 autoFocus
-                // Matches the display h1's typography so editing feels like
-                // typing directly over the title, not a small form field.
-                className="font-display h-auto w-full rounded-none border-0 border-b-2 border-foreground/30 bg-transparent px-0 py-0 text-4xl text-foreground shadow-none focus-visible:border-primary focus-visible:ring-0 sm:text-5xl"
+                className="font-display h-auto w-full rounded-none border-0 border-b-2 border-foreground/30 bg-transparent px-0 py-0 text-xl font-semibold text-foreground shadow-none focus-visible:border-primary focus-visible:ring-0"
               />
             ) : (
-              <h1 className="font-display text-4xl leading-[1.15] text-foreground sm:text-5xl">{title}</h1>
+              <h1 className="font-display text-xl leading-tight font-semibold text-foreground">{title}</h1>
+            )}
+
+            {owner && (
+              <Link
+                href={`/profile/${owner.id}`}
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+              >
+                <UserAvatar image={owner.image} name={ownerName ?? ""} className="size-5" />
+                <span>{ownerName}</span>
+              </Link>
+            )}
+
+            {isOwner ? (
+              <EditableDescription playlistId={playlistId} initialDescription={initialDescription} />
+            ) : (
+              initialDescription && (
+                <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                  {initialDescription}
+                </p>
+              )
+            )}
+
+            <span className="font-pixel mt-auto text-xs tracking-wider text-muted-foreground uppercase">
+              {visibleTracks.length} tracks
+            </span>
+          </div>
+        </div>
+
+        {(error || isEditing) && (
+          <div className="flex flex-col gap-2 pb-3">
+            {error && <p className="text-sm text-destructive">{error}</p>}
+            {isEditing && (
+              <div className="flex items-center gap-3">
+                <Button type="button" size="sm" onClick={handleSave} disabled={isSaving}>
+                  {isSaving ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+                  저장
+                </Button>
+                <Button type="button" size="sm" variant="outline" onClick={cancelEditing} disabled={isSaving}>
+                  <X className="size-4" />
+                  취소
+                </Button>
+              </div>
             )}
           </div>
-
-          {owner && (
-            <Link
-              href={`/profile/${owner.id}`}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
-            >
-              <UserAvatar image={owner.image} name={ownerName ?? ""} className="size-7" />
-              <span className="text-xs font-semibold tracking-wide uppercase">Curated by {ownerName}</span>
-            </Link>
-          )}
-
-          {isOwner ? (
-            <EditableDescription playlistId={playlistId} initialDescription={initialDescription} />
-          ) : (
-            initialDescription && (
-              <p className="text-base leading-relaxed text-muted-foreground">{initialDescription}</p>
-            )
-          )}
-
-          <p className="font-mono text-xs text-muted-foreground">{(isEditing ? draftTracks : tracks).length}곡</p>
-
-          <div className="flex w-full flex-col gap-2">
-            {error && <p className="text-sm text-destructive">{error}</p>}
-            <div className="flex flex-wrap items-center justify-center gap-3 sm:justify-start">
-              {isEditing ? (
-                <>
-                  <Button type="button" size="sm" onClick={handleSave} disabled={isSaving}>
-                    {isSaving ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
-                    저장
-                  </Button>
-                  <Button type="button" size="sm" variant="outline" onClick={cancelEditing} disabled={isSaving}>
-                    <X className="size-4" />
-                    취소
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <PlaylistPlayButton tracks={tracks.map((track) => ({ youtubeUrl: track.youtubeUrl ?? null }))} />
-                  <LikeButton
-                    playlistId={playlistId}
-                    initialLiked={initialLiked}
-                    initialCount={likeCount}
-                    isAuthenticated={isAuthenticated}
-                  />
-                  <InstagramStoryShareButton
-                    playlistId={playlistId}
-                    title={title}
-                    description={initialDescription}
-                    coverImageUrl={coverImageUrl}
-                    tracks={tracks.map((track) => ({ title: track.title, artist: track.artist, duration: track.duration }))}
-                    curatorName={ownerName ?? "익명"}
-                    createdAt={createdAt}
-                    likeCount={likeCount}
-                  />
-                  {isOwner && (
-                    <>
-                      <Button type="button" variant="outline" size="icon" aria-label="플레이리스트 수정" onClick={startEditing}>
-                        <Pencil className="size-4" />
-                      </Button>
-                      <DeletePlaylistButton playlistId={playlistId} redirectTo={`/profile/${owner?.id ?? ""}`} />
-                    </>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-        </div>
+        )}
       </div>
 
-      {isEditing ? (
-        <div className="flex flex-col gap-6">
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={draftTracks.map((track) => track.id)} strategy={verticalListSortingStrategy}>
-              <div className="flex flex-col gap-1">
-                {draftTracks.map((track) => (
-                  <SortableDraftTrackRow
-                    key={track.id}
-                    track={track}
-                    onRemove={handleRemoveTrack}
-                    disabled={isSaving}
-                  />
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
+      {!isEditing && (
+        <>
+          <PlaylistPlayButton tracks={tracks.map((track) => ({ youtubeUrl: track.youtubeUrl ?? null }))} />
 
-          <TrackSearchAdd onAdd={handleAddTrack} />
-        </div>
-      ) : (
-        <div className="flex flex-col divide-y divide-border border-t border-border">
-          {tracks.map((track, index) => (
-            <PlaylistTrackRow
-              key={track.id}
-              index={index + 1}
-              title={track.title}
-              artist={track.artist}
-              album={track.album}
-              duration={track.duration}
-              youtubeUrl={track.youtubeUrl ?? null}
+          <div className="flex items-center gap-4 px-3 py-2.5">
+            <LikeButton
+              playlistId={playlistId}
+              initialLiked={initialLiked}
+              initialCount={likeCount}
+              isAuthenticated={isAuthenticated}
+              variant="minimal"
             />
-          ))}
-        </div>
+            <InstagramStoryShareButton
+              playlistId={playlistId}
+              title={title}
+              description={initialDescription}
+              coverImageUrl={coverImageUrl}
+              tracks={tracks.map((track) => ({ title: track.title, artist: track.artist, duration: track.duration }))}
+              curatorName={ownerName ?? "익명"}
+              createdAt={createdAt}
+              likeCount={likeCount}
+            />
+            {isOwner && (
+              <>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label="플레이리스트 수정"
+                  onClick={startEditing}
+                  className="size-8 text-muted-foreground hover:text-foreground"
+                >
+                  <Pencil className="size-4" />
+                </Button>
+                <DeletePlaylistButton playlistId={playlistId} redirectTo={`/profile/${owner?.id ?? ""}`} />
+              </>
+            )}
+          </div>
+        </>
       )}
+
+      <div className="px-3">
+        {isEditing ? (
+          <div className="flex flex-col gap-6 pb-8">
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={draftTracks.map((track) => track.id)} strategy={verticalListSortingStrategy}>
+                <div className="flex flex-col gap-1">
+                  {draftTracks.map((track) => (
+                    <SortableDraftTrackRow
+                      key={track.id}
+                      track={track}
+                      onRemove={handleRemoveTrack}
+                      disabled={isSaving}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+
+            <TrackSearchAdd onAdd={handleAddTrack} />
+          </div>
+        ) : (
+          <>
+            <div className="flex items-baseline justify-between border-b border-border pt-4 pb-2">
+              <h2 className="font-display text-base text-foreground">Tracklist</h2>
+              <span className="font-pixel text-[10px] text-muted-foreground uppercase">{tracks.length}</span>
+            </div>
+            <div className="flex flex-col divide-y divide-border pb-8">
+              {tracks.map((track, index) => (
+                <PlaylistTrackRow
+                  key={track.id}
+                  index={index + 1}
+                  title={track.title}
+                  artist={track.artist}
+                  album={track.album}
+                  duration={track.duration}
+                  youtubeUrl={track.youtubeUrl ?? null}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

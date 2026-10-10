@@ -1,5 +1,4 @@
 import { SquarePlay } from "lucide-react";
-import { GradientTrackArt } from "@/components/track/gradient-track-art";
 import { formatDuration } from "@/lib/format";
 
 interface PlaylistTrackRowProps {
@@ -15,11 +14,10 @@ interface PlaylistTrackRowProps {
 
 export function PlaylistTrackRow({ index, title, artist, album, duration, youtubeUrl }: PlaylistTrackRowProps) {
   return (
-    <div className="flex items-center gap-3 py-3">
+    <div className="flex h-11 shrink-0 items-center gap-3">
       <span className="font-pixel w-5 shrink-0 text-xs text-muted-foreground tabular-nums">
         {String(index).padStart(2, "0")}
       </span>
-      <GradientTrackArt title={title} artist={artist} className="size-11 shrink-0 rounded-[3px]" />
 
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm leading-tight font-semibold">{title}</p>

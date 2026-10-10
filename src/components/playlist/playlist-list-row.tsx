@@ -29,7 +29,7 @@ export function PlaylistListRow({ id, title, coverImageUrl, tracks, trackCount, 
   return (
     <Link
       href={`/playlist/${id}`}
-      className="flex items-center gap-3 py-3 transition-colors hover:bg-accent/50"
+      className="flex h-14 shrink-0 items-center gap-3 transition-colors hover:bg-accent/50"
     >
       <PlaylistCover
         coverImageUrl={coverImageUrl}

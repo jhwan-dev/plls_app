@@ -4,6 +4,7 @@ import "./globals.css";
 import { auth } from "@/lib/auth";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { SiteHeader } from "@/components/layout/site-header";
+import { ChromeVisibility } from "@/components/layout/chrome-visibility";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { MobileContentOffset } from "@/components/layout/mobile-content-offset";
 import { SplashScreen } from "@/components/brand/splash-screen";
@@ -65,7 +66,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <SplashScreen />
         <QueryProvider>
           <Toaster>
-            <SiteHeader session={session} />
+            <ChromeVisibility>
+              <SiteHeader session={session} />
+            </ChromeVisibility>
             <MobileContentOffset>{children}</MobileContentOffset>
             <BottomNav
             userId={session?.user?.id}

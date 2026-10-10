@@ -28,7 +28,7 @@ interface DiscoverFeedProps {
 
 export function DiscoverFeed({ sections }: DiscoverFeedProps) {
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-6">
       {sections.map((section) => (
         <section key={section.key} className="flex flex-col">
           <div className="flex items-baseline justify-between gap-4 border-b border-border pb-2">

@@ -9,6 +9,7 @@ import {
   getWeeklyHypePlaylists,
 } from "@/lib/discover";
 import { DiscoverFeed, type FeedPlaylist, type FeedSection } from "@/components/discover/discover-feed";
+import { ScreenHeader } from "@/components/layout/screen-header";
 
 export const metadata: Metadata = {
   title: "둘러보기",
@@ -112,14 +113,11 @@ export default async function Home() {
   ];
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-14 px-4 pt-10 pb-8">
-      <h1 className="font-display text-4xl leading-[1.15] text-foreground sm:text-5xl">
-        오늘의 취향을
-        <br />
-        골라보세요.
-      </h1>
-
-      <DiscoverFeed sections={sections} />
+    <div className="mx-auto flex w-full max-w-2xl flex-col">
+      <ScreenHeader title="Browse" meta={`${Math.min(recent.length, 99)} new`} />
+      <div className="px-3 pt-4 pb-8">
+        <DiscoverFeed sections={sections} />
+      </div>
     </div>
   );
 }
