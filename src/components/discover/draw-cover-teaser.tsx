@@ -3,9 +3,9 @@ import { PixelIcon } from "@/components/pixel/pixel-icon";
 
 /** Entry point for hand-drawing a playlist cover on its own pixel grid —
  * every cover already renders as one (see lib/pixel-art.ts), so this is
- * where that becomes something a user can paint themselves. The editor
- * itself isn't built yet; this links to Search/create as the nearest real
- * "make something" flow in the meantime. */
+ * where that becomes something a user can paint themselves (see
+ * PixelCoverEditor). Links to Search/create, where a new draft's cover
+ * editor offers "직접 그리기" alongside the regular photo upload. */
 export function DrawCoverTeaser() {
   return (
     <Link
