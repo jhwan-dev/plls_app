@@ -53,7 +53,16 @@ export default async function PlaylistPage({ params }: PageProps<"/playlist/[id]
   const [viewerLike, viewerRepost] = userId
     ? await Promise.all([
         prisma.like.findUnique({ where: { userId_playlistId: { userId, playlistId: id } } }),
-        prisma.repost.findUnique({ where: { userId_playlistId: { userId, playlistId: id } } }),
+        // Defensive: the `reposts` table is new (see the add_repost
+        // migration) — if an environment's database hasn't picked it up
+        // yet, this falls back to "not reposted" instead of taking the
+        // whole page down for every signed-in viewer.
+        prisma.repost
+          .findUnique({ where: { userId_playlistId: { userId, playlistId: id } } })
+          .catch((error) => {
+            console.error("Failed to read repost state:", error);
+            return null;
+          }),
       ])
     : [null, null];
 

@@ -25,19 +25,28 @@ export const getUserProfile = cache(async (userId: string) => {
     // Playlists this user reposted — carried over as-is, original owner and
     // art unchanged, so "My Sound" and "Reposts" never show the same
     // playlist rendered two different ways.
-    prisma.repost.findMany({
-      where: { userId },
-      orderBy: { createdAt: "desc" },
-      include: {
-        playlist: {
-          include: {
-            tracks: { take: 4, orderBy: { position: "asc" } },
-            _count: { select: { tracks: true, likes: true } },
-            user: { select: { id: true, name: true, nickname: true, image: true } },
+    //
+    // Defensive: the `reposts` table is new (see the add_repost migration)
+    // — if an environment's database hasn't picked it up yet, this falls
+    // back to an empty list instead of taking the whole profile down.
+    prisma.repost
+      .findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        include: {
+          playlist: {
+            include: {
+              tracks: { take: 4, orderBy: { position: "asc" } },
+              _count: { select: { tracks: true, likes: true } },
+              user: { select: { id: true, name: true, nickname: true, image: true } },
+            },
           },
         },
-      },
-    }),
+      })
+      .catch((error) => {
+        console.error("Failed to read reposts:", error);
+        return [];
+      }),
     prisma.follow.count({ where: { followingId: userId } }),
     prisma.follow.count({ where: { followerId: userId } }),
     // Sum of likes across every playlist this user owns — not likes they've given out.

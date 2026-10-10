@@ -341,7 +341,6 @@ export function PlaylistDetailBody({
                   artist={track.artist}
                   album={track.album}
                   duration={track.duration}
-                  youtubeUrl={track.youtubeUrl ?? null}
                 />
               ))}
             </div>
