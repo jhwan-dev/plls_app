@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { PixelIcon } from "@/components/pixel/pixel-icon";
+import { toast } from "@/components/ui/toast";
 import { parseJsonResponse } from "@/lib/api/http";
 
 interface LikeButtonProps {
@@ -52,9 +53,14 @@ export function LikeButton({ playlistId, initialLiked, currentCount, isAuthentic
       const result = await parseJsonResponse<ToggleLikeResponse>(response);
       setLiked(result.liked);
       onToggled?.(result.liked, result.count);
-    } catch {
+    } catch (err) {
       setLiked(previousLiked);
       onToggled?.(previousLiked, previousCount);
+      toast.add({
+        title: "좋아요 처리에 실패했어요",
+        description: err instanceof Error ? err.message : "잠시 후 다시 시도해 주세요.",
+        type: "error",
+      });
     } finally {
       setIsPending(false);
     }
