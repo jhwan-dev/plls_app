@@ -70,6 +70,14 @@ export function PixelCoverEditor({ open, onOpenChange, onSave }: PixelCoverEdito
         }
       }
     }
+
+    // Grid lines — on-screen only (see the separate, line-free export
+    // canvas in handleSave) so each cell stays easy to target while drawing.
+    ctx.fillStyle = "rgba(38, 37, 33, 0.12)";
+    for (let i = 0; i <= PIXEL_COVER_GRID; i++) {
+      ctx.fillRect(i * CELL, 0, 1, canvas.height);
+      ctx.fillRect(0, i * CELL, canvas.width, 1);
+    }
   }
 
   function paintAt(clientX: number, clientY: number, activeTool: "pen" | "eraser", activeColor: string) {
