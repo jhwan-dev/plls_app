@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { PixelIcon } from "@/components/pixel/pixel-icon";
-import { toast } from "@/components/ui/toast";
 import { parseJsonResponse } from "@/lib/api/http";
 
 interface RepostButtonProps {
@@ -47,18 +46,8 @@ export function RepostButton({ playlistId, initialReposted, isAuthenticated, isO
       const response = await fetch(`/api/playlists/${playlistId}/repost`, { method: "POST" });
       const result = await parseJsonResponse<ToggleRepostResponse>(response);
       setReposted(result.reposted);
-      toast.add({
-        title: result.reposted ? "리포스트했어요" : "리포스트를 취소했어요",
-        description: result.reposted ? "내 프로필의 Reposts에서 볼 수 있어요." : undefined,
-        type: "success",
-      });
-    } catch (err) {
+    } catch {
       setReposted(previous);
-      toast.add({
-        title: "리포스트에 실패했어요",
-        description: err instanceof Error ? err.message : "잠시 후 다시 시도해 주세요.",
-        type: "error",
-      });
     } finally {
       setIsPending(false);
     }
