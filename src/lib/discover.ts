@@ -114,3 +114,15 @@ export async function getLikedPlaylistIds(userId: string, playlistIds: string[])
 
   return new Set(likes.map((like) => like.playlistId));
 }
+
+/** Playlist ids among `playlistIds` that `userId` has reposted — for seeding RepostButton state in bulk. */
+export async function getRepostedPlaylistIds(userId: string, playlistIds: string[]) {
+  if (playlistIds.length === 0) return new Set<string>();
+
+  const reposts = await prisma.repost.findMany({
+    where: { userId, playlistId: { in: playlistIds } },
+    select: { playlistId: true },
+  });
+
+  return new Set(reposts.map((repost) => repost.playlistId));
+}

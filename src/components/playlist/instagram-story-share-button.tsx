@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { toPng } from "html-to-image";
 import { Camera, Loader2, Shuffle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PixelIcon } from "@/components/pixel/pixel-icon";
 import { toast } from "@/components/ui/toast";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { StoryPosterCard } from "@/components/playlist/story-poster-card";
@@ -150,10 +151,11 @@ export function InstagramStoryShareButton({
 
   return (
     <>
-      <Button type="button" variant="outline" onClick={handleOpen} className="shrink-0">
-        <Camera className="size-4" />
-        인스타로 공유
-      </Button>
+      {/* Icon-only — one of the four Like/Repost/Play/Share buttons (PLLS
+          Redesign, turn 7). Opens the same story-card sheet as before. */}
+      <button type="button" onClick={handleOpen} aria-label="공유">
+        <PixelIcon name="icon-share" size={22} />
+      </button>
 
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetContent side="bottom" className="items-center">

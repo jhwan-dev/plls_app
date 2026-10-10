@@ -2,8 +2,6 @@ import { SquarePlay } from "lucide-react";
 import { formatDuration } from "@/lib/format";
 
 interface PlaylistTrackRowProps {
-  /** 1-based position in the tracklist — PLLS Redesign numbers every row. */
-  index: number;
   title: string;
   artist: string;
   album: string;
@@ -12,13 +10,9 @@ interface PlaylistTrackRowProps {
   youtubeUrl: string | null;
 }
 
-export function PlaylistTrackRow({ index, title, artist, album, duration, youtubeUrl }: PlaylistTrackRowProps) {
+export function PlaylistTrackRow({ title, artist, album, duration, youtubeUrl }: PlaylistTrackRowProps) {
   return (
     <div className="flex h-11 shrink-0 items-center gap-3">
-      <span className="font-pixel w-5 shrink-0 text-xs text-muted-foreground tabular-nums">
-        {String(index).padStart(2, "0")}
-      </span>
-
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm leading-tight font-semibold">{title}</p>
         <p className="truncate text-sm leading-tight text-muted-foreground">{artist}</p>

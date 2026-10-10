@@ -1,4 +1,5 @@
 import { PlaylistListRow } from "@/components/playlist/playlist-list-row";
+import { HeroPlaylistCard } from "@/components/discover/hero-playlist-card";
 import type { TrackSeed } from "@/lib/gradient";
 
 export interface FeedPlaylist {
@@ -18,7 +19,7 @@ export interface FeedSection {
   description: string;
   emptyMessage: string;
   items: FeedPlaylist[];
-  /** "Today's PLLS" is the one section that keeps the brand accent color. */
+  /** "Today's PLLS" renders as a featured card, not a row — see HeroPlaylistCard. */
   accent?: boolean;
 }
 
@@ -46,6 +47,10 @@ export function DiscoverFeed({ sections }: DiscoverFeedProps) {
 
           {section.items.length === 0 ? (
             <p className="py-10 text-center text-sm text-muted-foreground">{section.emptyMessage}</p>
+          ) : section.accent ? (
+            <div className="pt-3">
+              <HeroPlaylistCard playlist={section.items[0]!} />
+            </div>
           ) : (
             <div className="flex flex-col divide-y divide-border">
               {section.items.map((playlist) => (

@@ -12,7 +12,7 @@ export const getUserProfile = cache(async (userId: string) => {
 
   if (!user) return null;
 
-  const [playlists, followerCount, followingCount, totalLikesReceived] = await Promise.all([
+  const [playlists, reposts, followerCount, followingCount, totalLikesReceived] = await Promise.all([
     prisma.playlist.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
@@ -22,13 +22,36 @@ export const getUserProfile = cache(async (userId: string) => {
         _count: { select: { tracks: true, likes: true } },
       },
     }),
+    // Playlists this user reposted — carried over as-is, original owner and
+    // art unchanged, so "My Sound" and "Reposts" never show the same
+    // playlist rendered two different ways.
+    prisma.repost.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      include: {
+        playlist: {
+          include: {
+            tracks: { take: 4, orderBy: { position: "asc" } },
+            _count: { select: { tracks: true, likes: true } },
+            user: { select: { id: true, name: true, nickname: true, image: true } },
+          },
+        },
+      },
+    }),
     prisma.follow.count({ where: { followingId: userId } }),
     prisma.follow.count({ where: { followerId: userId } }),
     // Sum of likes across every playlist this user owns — not likes they've given out.
     prisma.like.count({ where: { playlist: { userId } } }),
   ]);
 
-  return { user, playlists, followerCount, followingCount, totalLikesReceived };
+  return {
+    user,
+    playlists,
+    reposts: reposts.map((repost) => repost.playlist),
+    followerCount,
+    followingCount,
+    totalLikesReceived,
+  };
 });
 
 export const getUserBasic = cache((userId: string) =>

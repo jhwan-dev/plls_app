@@ -1,3 +1,5 @@
+import { PixelIcon } from "@/components/pixel/pixel-icon";
+
 interface PlaylistPlayButtonProps {
   /** Tracks in playback order — only ones with a matched video are included. */
   tracks: { youtubeUrl: string | null }[];
@@ -18,9 +20,9 @@ function extractVideoId(youtubeUrl: string): string | null {
  * track-link.ts) are simply skipped rather than substituted with a search
  * link, since that has no video id to include in the queue.
  *
- * Renders as PLLS Redesign's full-width "Play on YouTube" bar (turn 7, 7c)
- * rather than a chip button — it owns that bar's whole look so Playlist
- * Detail doesn't render an empty bar shell when nothing is playable.
+ * Icon-only — one of the four Like/Repost/Play/Share buttons (PLLS
+ * Redesign, turn 7). No "YouTube" label or badge: where it opens is a
+ * technical detail, not something the button needs to say.
  */
 export function PlaylistPlayButton({ tracks }: PlaylistPlayButtonProps) {
   const videoIds = tracks
@@ -34,14 +36,8 @@ export function PlaylistPlayButton({ tracks }: PlaylistPlayButtonProps) {
   const href = `https://www.youtube.com/watch_videos?video_ids=${videoIds.join(",")}`;
 
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex h-11 shrink-0 items-center border-y border-border bg-card px-3 transition-colors hover:bg-accent/50"
-    >
-      <span className="flex-1 text-sm font-medium text-foreground">▶ 전체 재생</span>
-      <span className="font-pixel text-[10px] text-muted-foreground">YT</span>
+    <a href={href} target="_blank" rel="noopener noreferrer" aria-label="재생">
+      <PixelIcon name="icon-play" size={22} />
     </a>
   );
 }

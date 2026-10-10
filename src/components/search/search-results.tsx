@@ -1,15 +1,12 @@
-import { Check, Music2, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { PixelIcon } from "@/components/pixel/pixel-icon";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TrackRow } from "@/components/search/track-row";
 import { usePlaylistDraftStore } from "@/store/playlist-draft-store";
-import { cn } from "@/lib/utils";
 import type { Track } from "@/types/track";
 
 function TrackRowSkeleton() {
   return (
-    <div className="flex items-center gap-3 p-2">
-      <Skeleton className="size-12 shrink-0 rounded-md" />
+    <div className="flex h-11 items-center gap-3">
       <div className="flex-1 space-y-2">
         <Skeleton className="h-4 w-1/3" />
         <Skeleton className="h-3 w-1/4" />
@@ -31,7 +28,7 @@ function AddableTrackList({
   const addedIds = new Set(draftTracks.map((track) => track.itunesTrackId));
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col divide-y divide-border">
       {tracks.map((track) => {
         const isAdded = addedIds.has(track.id);
         return (
@@ -39,16 +36,13 @@ function AddableTrackList({
             key={track.id}
             track={track}
             action={
-              <Button
+              <button
                 type="button"
-                size="icon"
-                variant="ghost"
-                className={cn("size-9 shrink-0", isAdded && "text-primary hover:text-primary")}
                 aria-label={isAdded ? "플레이리스트에 추가됨" : "플레이리스트에 추가"}
                 onClick={() => onAddTrack(track)}
               >
-                {isAdded ? <Check className="size-4" /> : <Plus className="size-4" />}
-              </Button>
+                <PixelIcon name={isAdded ? "icon-check" : "icon-plus"} size={14} />
+              </button>
             }
           />
         );
@@ -110,17 +104,20 @@ export function SearchResults({
     if (trendingTracks.length === 0) {
       return (
         <div className="flex flex-col items-center gap-3 py-16 text-center text-muted-foreground">
-          <Music2 className="size-8" />
+          <PixelIcon name="icon-search" size={24} />
           <p className="text-sm">곡, 아티스트, 앨범을 검색해 보세요.</p>
         </div>
       );
     }
 
     return (
-      <div className="flex flex-col gap-4">
-        <h2 className="font-display border-b border-border pb-3 text-2xl text-foreground">
-          Trending on PLLS
-        </h2>
+      <div className="flex flex-col">
+        <div className="flex items-baseline justify-between gap-4 border-b border-border pb-2">
+          <h2 className="font-display text-base text-foreground">검색 결과</h2>
+          <span className="font-pixel text-[10px] tracking-wider text-muted-foreground uppercase">
+            Trending on PLLS
+          </span>
+        </div>
         <AddableTrackList tracks={trendingTracks} onAddTrack={onAddTrack} />
       </div>
     );
@@ -129,11 +126,21 @@ export function SearchResults({
   if (tracks.length === 0) {
     return (
       <div className="flex flex-col items-center gap-3 py-16 text-center text-muted-foreground">
-        <Music2 className="size-8" />
+        <PixelIcon name="icon-search" size={24} />
         <p className="text-sm">검색 결과가 없습니다.</p>
       </div>
     );
   }
 
-  return <AddableTrackList tracks={tracks} onAddTrack={onAddTrack} />;
+  return (
+    <div className="flex flex-col">
+      <div className="flex items-baseline justify-between gap-4 border-b border-border pb-2">
+        <h2 className="font-display text-base text-foreground">검색 결과</h2>
+        <span className="font-pixel text-[10px] tracking-wider text-muted-foreground uppercase">
+          {tracks.length}건
+        </span>
+      </div>
+      <AddableTrackList tracks={tracks} onAddTrack={onAddTrack} />
+    </div>
+  );
 }

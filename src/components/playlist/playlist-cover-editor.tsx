@@ -22,10 +22,10 @@ interface PlaylistCoverEditorProps {
  * page — see onUpload/onRemove for how the two differ.
  *
  * The empty state is deliberately its own "add a photo" tile, not
- * PlaylistCover's P-mark default — that P mark is the *read-only* look for
- * a playlist with no cover (feed cards, the view-mode page, OG image, Story
- * card), which would otherwise make an editable, empty slot look like a
- * finished, deliberate choice instead of an invitation to upload something. */
+ * PlaylistCover's generated pixel-art default — that's the *read-only* look
+ * for a playlist with no cover (feed cards, the view-mode page, OG image,
+ * Story card), which would otherwise make an editable, empty slot look like
+ * a finished, deliberate choice instead of an invitation to upload something. */
 export function PlaylistCoverEditor({
   coverImageUrl,
   onUpload,
@@ -82,7 +82,7 @@ export function PlaylistCoverEditor({
       <div className={cn("group relative overflow-hidden rounded-[3px]", className)}>
         {coverImageUrl ? (
           <>
-            <PlaylistCover coverImageUrl={coverImageUrl} tracks={tracks} alt={alt} className="size-full" />
+            <PlaylistCover coverImageUrl={coverImageUrl} seed={alt} tracks={tracks} alt={alt} className="size-full" />
 
             <button
               type="button"

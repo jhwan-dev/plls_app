@@ -2,64 +2,64 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Crown, Home, Search } from "lucide-react";
-import { UserAvatar } from "@/components/brand/user-avatar";
+import { PixelIcon } from "@/components/pixel/pixel-icon";
 import { cn } from "@/lib/utils";
 
 interface BottomNavProps {
   userId?: string;
-  userImage: string | null;
-  userName: string | null;
 }
 
-export function BottomNav({ userId, userImage, userName }: BottomNavProps) {
-  const pathname = usePathname();
+const TABS = [
+  { key: "playlists", href: "/", icon: "nav-playlists", label: "PLAYLISTS" },
+  { key: "curator-zone", href: "/curator-zone", icon: "nav-crown", label: "CURATOR ZONE" },
+  { key: "search", href: "/search", icon: "nav-search", label: "SEARCH" },
+] as const;
 
+/** Reads as four physical device buttons (PLLS Redesign, turn 7) — a
+ * bordered tile per tab, icon + label, the active one filled solid blue —
+ * not a generic icon-only tab strip. */
+export function BottomNav({ userId }: BottomNavProps) {
+  const pathname = usePathname();
   const profileHref = userId ? `/profile/${userId}` : "/api/auth/signin";
-  const isDiscoverActive = pathname === "/";
-  const isCuratorZoneActive = pathname.startsWith("/curator-zone");
-  const isCreateActive = pathname.startsWith("/search");
+
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname.startsWith(href);
   const isProfileActive = !!userId && pathname === profileHref;
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t bg-background md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background md:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      <div className="flex h-16 items-center justify-around">
-        <Link
-          href="/"
-          aria-label="둘러보기"
-          className={cn("flex flex-1 items-center justify-center", isDiscoverActive ? "text-foreground" : "text-muted-foreground")}
-        >
-          <Home className="size-6" fill={isDiscoverActive ? "currentColor" : "none"} />
-        </Link>
+      <div className="grid grid-cols-4 gap-1.5 p-1.5">
+        {TABS.map((tab) => {
+          const active = isActive(tab.href);
+          return (
+            <Link
+              key={tab.key}
+              href={tab.href}
+              aria-label={tab.label}
+              className={cn(
+                "flex flex-col items-center gap-1 border border-border py-2",
+                active ? "border-primary bg-primary text-primary-foreground" : "bg-card text-muted-foreground",
+              )}
+            >
+              <PixelIcon name={tab.icon} size={17} />
+              <span className="font-pixel text-[7px] tracking-wide">{tab.label}</span>
+            </Link>
+          );
+        })}
 
         <Link
-          href="/curator-zone"
-          aria-label="큐레이터 존"
-          className={cn("flex flex-1 items-center justify-center", isCuratorZoneActive ? "text-foreground" : "text-muted-foreground")}
+          href={profileHref}
+          aria-label="PROFILE"
+          className={cn(
+            "flex flex-col items-center gap-1 border border-border py-2",
+            isProfileActive ? "border-primary bg-primary text-primary-foreground" : "bg-card text-muted-foreground",
+          )}
         >
-          <Crown className="size-6" fill={isCuratorZoneActive ? "currentColor" : "none"} />
-        </Link>
-
-        <Link
-          href="/search"
-          aria-label="검색/생성"
-          className={cn("flex flex-1 items-center justify-center", isCreateActive ? "text-foreground" : "text-muted-foreground")}
-        >
-          <Search className="size-6" strokeWidth={isCreateActive ? 2.75 : 2} />
-        </Link>
-
-        <Link href={profileHref} aria-label="내 프로필" className="flex flex-1 items-center justify-center">
-          <UserAvatar
-            image={userImage}
-            name={userName ?? ""}
-            className={cn(
-              "size-7 rounded-full ring-2",
-              isProfileActive ? "ring-primary" : "ring-transparent",
-            )}
-          />
+          <PixelIcon name="nav-profile" size={17} />
+          <span className="font-pixel text-[7px] tracking-wide">PROFILE</span>
         </Link>
       </div>
     </nav>

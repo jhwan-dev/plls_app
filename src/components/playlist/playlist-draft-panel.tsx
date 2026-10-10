@@ -70,9 +70,11 @@ export function PlaylistDraftPanel({ isAuthenticated, isCurator }: PlaylistDraft
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-baseline justify-between gap-4 border-b border-border pb-3">
-        <h2 className="font-display text-2xl text-foreground">My PLLS</h2>
-        <span className="font-mono text-xs text-muted-foreground">{tracks.length}곡</span>
+      <div className="flex items-baseline justify-between gap-4 border-b border-border pb-2">
+        <h2 className="font-display text-base text-foreground">새 플레이리스트</h2>
+        <span className="font-pixel text-[10px] tracking-wider text-muted-foreground uppercase">
+          {tracks.length}곡
+        </span>
       </div>
 
       <PlaylistCoverEditor

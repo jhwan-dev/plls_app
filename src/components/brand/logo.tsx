@@ -1,28 +1,24 @@
 import Link from "next/link";
-import Image from "next/image";
+import { PixelIcon } from "@/components/pixel/pixel-icon";
 import { cn } from "@/lib/utils";
 
 interface LogoProps {
   className?: string;
-  wordmarkClassName?: string;
+  iconSize?: number;
   href?: string;
 }
 
-// Intrinsic size of public/brand/plls-wordmark.png — sets the aspect-ratio
-// so the image is never squished or cropped at whatever height it's shown.
-const WORDMARK_RATIO = "1267 / 405";
-
-/** The header brand button — the real PLLS wordmark asset only. The "P"
- * symbol is a separate, deliberately rare accent (see BrandMark) and isn't
- * paired here to avoid repeating the mark next to itself on every page. */
-export function Logo({ className, wordmarkClassName, href = "/" }: LogoProps) {
+/** The brand lockup — a hand-authored pixel-bitmap "P" plus a Press Start
+ * 2P wordmark (see lib/pixel-icons.ts and globals.css's --font-word). Not
+ * the photo asset in public/brand/ — those stay in the two spots that can't
+ * render a canvas (the OG image, built by Satori, and the splash screen's
+ * brief pre-redesign brand moment). */
+export function Logo({ className, iconSize = 20, href = "/" }: LogoProps) {
   return (
-    <Link href={href} className={cn("inline-flex items-center", className)}>
-      <span
-        className={cn("relative h-7 w-auto", wordmarkClassName)}
-        style={{ aspectRatio: WORDMARK_RATIO }}
-      >
-        <Image src="/brand/plls-wordmark.png" alt="PLLS" fill sizes="140px" className="object-contain" priority />
+    <Link href={href} className={cn("inline-flex items-center gap-1.5", className)}>
+      <PixelIcon name="p-icon" size={iconSize} />
+      <span className="font-word text-foreground" style={{ fontSize: iconSize * 0.55 }}>
+        PLLS
       </span>
     </Link>
   );

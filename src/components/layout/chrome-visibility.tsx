@@ -9,7 +9,12 @@ import type { ReactNode } from "react";
 // only top-level nav (desktop links, sign-in), so this is a narrow,
 // per-route opt-out rather than a site-wide nav redesign.
 function screenHasOwnHeader(pathname: string): boolean {
-  return pathname === "/" || pathname.startsWith("/playlist/");
+  return (
+    pathname === "/" ||
+    pathname.startsWith("/playlist/") ||
+    pathname === "/search" ||
+    /^\/profile\/[^/]+$/.test(pathname)
+  );
 }
 
 /** Hides `children` (SiteHeader) on routes that render their own ScreenHeader

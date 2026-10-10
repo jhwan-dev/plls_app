@@ -50,9 +50,12 @@ export default async function PlaylistPage({ params }: PageProps<"/playlist/[id]
   const session = await auth();
   const userId = session?.user?.id;
   const isOwner = !!userId && userId === playlist.userId;
-  const viewerLike = userId
-    ? await prisma.like.findUnique({ where: { userId_playlistId: { userId, playlistId: id } } })
-    : null;
+  const [viewerLike, viewerRepost] = userId
+    ? await Promise.all([
+        prisma.like.findUnique({ where: { userId_playlistId: { userId, playlistId: id } } }),
+        prisma.repost.findUnique({ where: { userId_playlistId: { userId, playlistId: id } } }),
+      ])
+    : [null, null];
 
   const owner = playlist.user;
   const ownerName = owner ? displayName(owner) : null;
@@ -77,6 +80,7 @@ export default async function PlaylistPage({ params }: PageProps<"/playlist/[id]
       isOwner={isOwner}
       isAuthenticated={!!userId}
       initialLiked={!!viewerLike}
+      initialReposted={!!viewerRepost}
       likeCount={playlist._count.likes}
       createdAt={playlist.createdAt.toISOString()}
     />

@@ -24,6 +24,7 @@ import { PlaylistTrackRow } from "@/components/playlist/playlist-track-row";
 import { SortableDraftTrackRow } from "@/components/playlist/sortable-draft-track-row";
 import { TrackSearchAdd } from "@/components/playlist/track-search-add";
 import { LikeButton } from "@/components/playlist/like-button";
+import { RepostButton } from "@/components/playlist/repost-button";
 import { PlaylistPlayButton } from "@/components/playlist/playlist-play-button";
 import { InstagramStoryShareButton } from "@/components/playlist/instagram-story-share-button";
 import { DeletePlaylistButton } from "@/components/playlist/delete-playlist-button";
@@ -44,6 +45,7 @@ interface PlaylistDetailBodyProps {
   isOwner: boolean;
   isAuthenticated: boolean;
   initialLiked: boolean;
+  initialReposted: boolean;
   likeCount: number;
   createdAt: string;
 }
@@ -59,13 +61,15 @@ export function PlaylistDetailBody({
   isOwner,
   isAuthenticated,
   initialLiked,
-  likeCount,
+  initialReposted,
+  likeCount: initialLikeCount,
   createdAt,
 }: PlaylistDetailBodyProps) {
   const router = useRouter();
   const [title, setTitle] = useState(initialTitle);
   const [tracks, setTracks] = useState(initialTracks);
   const [coverImageUrl, setCoverImageUrl] = useState(initialCoverImageUrl);
+  const [likeCount, setLikeCount] = useState(initialLikeCount);
   const [isEditing, setIsEditing] = useState(false);
   const [draftTitle, setDraftTitle] = useState(initialTitle);
   const [draftTracks, setDraftTracks] = useState(initialTracks);
@@ -182,6 +186,7 @@ export function PlaylistDetailBody({
           ) : (
             <PlaylistCover
               coverImageUrl={coverImageUrl}
+              seed={playlistId}
               tracks={trackSeeds}
               alt={title}
               className="aspect-square w-36 shrink-0 rounded-[2px] sm:w-40"
@@ -226,8 +231,9 @@ export function PlaylistDetailBody({
               )
             )}
 
-            <span className="font-pixel mt-auto text-xs tracking-wider text-muted-foreground uppercase">
-              {visibleTracks.length} tracks
+            <span className="font-pixel mt-auto flex gap-3 text-xs tracking-wider text-muted-foreground uppercase">
+              <span>{visibleTracks.length} tracks</span>
+              {!isEditing && <span>{likeCount} likes</span>}
             </span>
           </div>
         </div>
@@ -253,16 +259,24 @@ export function PlaylistDetailBody({
 
       {!isEditing && (
         <>
-          <PlaylistPlayButton tracks={tracks.map((track) => ({ youtubeUrl: track.youtubeUrl ?? null }))} />
-
-          <div className="flex items-center gap-4 px-3 py-2.5">
+          {/* Like / Repost / Play / Share — icon-only, in that order (PLLS
+              Redesign, turn 7). No button block, no divider: just the icons
+              sitting on the screen. */}
+          <div className="flex items-center gap-6 px-3 py-3">
             <LikeButton
               playlistId={playlistId}
               initialLiked={initialLiked}
-              initialCount={likeCount}
+              currentCount={likeCount}
               isAuthenticated={isAuthenticated}
-              variant="minimal"
+              onToggled={(_liked, count) => setLikeCount(count)}
             />
+            <RepostButton
+              playlistId={playlistId}
+              initialReposted={initialReposted}
+              isAuthenticated={isAuthenticated}
+              isOwnPlaylist={isOwner}
+            />
+            <PlaylistPlayButton tracks={tracks.map((track) => ({ youtubeUrl: track.youtubeUrl ?? null }))} />
             <InstagramStoryShareButton
               playlistId={playlistId}
               title={title}
@@ -273,8 +287,9 @@ export function PlaylistDetailBody({
               createdAt={createdAt}
               likeCount={likeCount}
             />
+
             {isOwner && (
-              <>
+              <div className="ml-auto flex items-center gap-1">
                 <Button
                   type="button"
                   variant="ghost"
@@ -286,7 +301,7 @@ export function PlaylistDetailBody({
                   <Pencil className="size-4" />
                 </Button>
                 <DeletePlaylistButton playlistId={playlistId} redirectTo={`/profile/${owner?.id ?? ""}`} />
-              </>
+              </div>
             )}
           </div>
         </>
@@ -319,10 +334,9 @@ export function PlaylistDetailBody({
               <span className="font-pixel text-[10px] text-muted-foreground uppercase">{tracks.length}</span>
             </div>
             <div className="flex flex-col divide-y divide-border pb-8">
-              {tracks.map((track, index) => (
+              {tracks.map((track) => (
                 <PlaylistTrackRow
                   key={track.id}
-                  index={index + 1}
                   title={track.title}
                   artist={track.artist}
                   album={track.album}

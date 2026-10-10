@@ -11,8 +11,8 @@ interface UserAvatarProps {
 /** Square user photo, or a neutral initial-letter tile when there's no
  * photo — the brand-consistent replacement for the shadcn circular Avatar
  * wherever a person's photo shows up (credit lines, follow lists). Never
- * falls back to the PLLS "P" brand mark: that symbol represents the app
- * itself, not a placeholder for a person, see BrandMark. */
+ * falls back to the PLLS "P" brand mark (see Logo's pixel icon): that
+ * symbol represents the app itself, not a placeholder for a person. */
 export function UserAvatar({ image, name, className, sizes = "32px" }: UserAvatarProps) {
   const initial = name.trim().charAt(0).toUpperCase() || "?";
 

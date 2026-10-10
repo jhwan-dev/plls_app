@@ -2,9 +2,8 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { GradientTrackArt } from "@/components/track/gradient-track-art";
+import { GripVertical } from "lucide-react";
+import { PixelIcon } from "@/components/pixel/pixel-icon";
 import { formatDuration } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { DraftTrack } from "@/types/playlist";
@@ -48,8 +47,6 @@ export function SortableDraftTrackRow({ track, onRemove, disabled }: SortableDra
         <GripVertical className="size-4" />
       </button>
 
-      <GradientTrackArt title={track.title} artist={track.artist} className="size-10 shrink-0 rounded-md" />
-
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm leading-tight font-semibold">{track.title}</p>
         <p className="truncate text-xs text-muted-foreground leading-tight">{track.artist}</p>
@@ -59,17 +56,15 @@ export function SortableDraftTrackRow({ track, onRemove, disabled }: SortableDra
         {formatDuration(track.duration)}
       </p>
 
-      <Button
+      <button
         type="button"
-        size="icon"
-        variant="ghost"
-        className="size-8 shrink-0 text-muted-foreground hover:text-destructive"
+        className="shrink-0 disabled:cursor-not-allowed disabled:opacity-40"
         aria-label="트랙 삭제"
         disabled={disabled}
         onClick={() => onRemove(track.id)}
       >
-        <X className="size-4" />
-      </Button>
+        <PixelIcon name="icon-close" size={14} />
+      </button>
     </div>
   );
 }

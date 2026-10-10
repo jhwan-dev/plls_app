@@ -9,7 +9,8 @@ import {
   getWeeklyHypePlaylists,
 } from "@/lib/discover";
 import { DiscoverFeed, type FeedPlaylist, type FeedSection } from "@/components/discover/discover-feed";
-import { ScreenHeader } from "@/components/layout/screen-header";
+import { DrawCoverTeaser } from "@/components/discover/draw-cover-teaser";
+import { Logo } from "@/components/brand/logo";
 
 export const metadata: Metadata = {
   title: "둘러보기",
@@ -114,8 +115,17 @@ export default async function Home() {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col">
-      <ScreenHeader title="Browse" meta={`${Math.min(recent.length, 99)} new`} />
-      <div className="px-3 pt-4 pb-8">
+      {/* Brand topbar, not a "Browse" screen title — PLLS Redesign's own
+          Home/Playlists screen opens with the masthead, not a label (turn
+          4). Mobile-only, same md:hidden handoff as ScreenHeader. */}
+      <header className="flex h-10 shrink-0 items-center justify-between border-b border-border px-3 md:hidden">
+        <Logo iconSize={18} />
+        <span className="font-pixel text-[10px] tracking-wider text-destructive uppercase">
+          {Math.min(recent.length, 99)} new
+        </span>
+      </header>
+      <div className="flex flex-col gap-6 px-3 pt-4 pb-8">
+        <DrawCoverTeaser />
         <DiscoverFeed sections={sections} />
       </div>
     </div>

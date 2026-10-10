@@ -21,8 +21,9 @@ model Playlist {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  tracks PlaylistTrack[]
-  likes  Like[]
+  tracks  PlaylistTrack[]
+  likes   Like[]
+  reposts Repost[]
 
   // Nullable so playlists created before login existed (or by a since-deleted
   // user, see onDelete below) keep working — but the API requires a session
@@ -104,6 +105,27 @@ model Like {
   @@map("likes")
 }
 
+/// A playlist someone else made, shared onto this user's own profile —
+/// Instagram's "repost," not a duplicate playlist. The original art,
+/// tracks and owner credit are unchanged; a repost only adds this row, so
+/// a profile's "Reposts" section is rendered by joining back to the same
+/// Playlist the owner's "My Sound" section reads. Same dedup pattern as
+/// Like/Follow — the unique constraint is what stops double-reposting.
+model Repost {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  playlistId String
+
+  @@unique([userId, playlistId])
+  @@index([playlistId])
+  @@index([userId])
+  @@map("reposts")
+}
+
 // --- Auth.js (next-auth v5) models — schema shape is fixed by @auth/prisma-adapter ---
 
 model User {
@@ -123,6 +145,7 @@ model User {
   sessions  Session[]
   playlists Playlist[]
   likes     Like[]
+  reposts   Repost[]
 
   // Follow rows where this user is the one doing the following.
   following Follow[] @relation("FollowFollower")

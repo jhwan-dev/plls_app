@@ -39,12 +39,6 @@ export function SearchView() {
 
   return (
     <div className="flex w-full flex-col gap-4">
-      <h1 className="font-display text-4xl leading-[1.15] text-foreground sm:text-5xl">
-        당신의 사운드를
-        <br />
-        만들어보세요.
-      </h1>
-
       <SearchBar value={query} onChange={setQuery} />
 
       <SearchResults

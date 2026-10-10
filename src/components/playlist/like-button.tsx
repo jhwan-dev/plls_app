@@ -1,18 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Heart } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { PixelIcon } from "@/components/pixel/pixel-icon";
 import { parseJsonResponse } from "@/lib/api/http";
 
 interface LikeButtonProps {
   playlistId: string;
   initialLiked: boolean;
-  initialCount: number;
+  currentCount: number;
   isAuthenticated: boolean;
-  /** "minimal" drops the bordered button chrome for use inside dense editorial cards. */
-  variant?: "button" | "minimal";
+  /** Lets the caller keep its own displayed like count (the hero stats
+   * row) in sync — this button shows no count itself, see its doc comment. */
+  onToggled?: (liked: boolean, count: number) => void;
 }
 
 interface ToggleLikeResponse {
@@ -20,15 +19,14 @@ interface ToggleLikeResponse {
   count: number;
 }
 
-export function LikeButton({
-  playlistId,
-  initialLiked,
-  initialCount,
-  isAuthenticated,
-  variant = "button",
-}: LikeButtonProps) {
+const ACTIVE = "#E8465A";
+const INACTIVE = "#B9B4A6";
+
+/** Icon-only — one of the four Like/Repost/Play/Share buttons on Playlist
+ * Detail (PLLS Redesign, turn 7). No count here: the hero stats row above
+ * already shows the like count once. */
+export function LikeButton({ playlistId, initialLiked, currentCount, isAuthenticated, onToggled }: LikeButtonProps) {
   const [liked, setLiked] = useState(initialLiked);
-  const [count, setCount] = useState(initialCount);
   const [isPending, setIsPending] = useState(false);
 
   async function handleClick() {
@@ -42,53 +40,29 @@ export function LikeButton({
     if (isPending) return;
 
     const previousLiked = liked;
-    const previousCount = count;
+    const previousCount = currentCount;
+    const optimisticCount = previousCount + (previousLiked ? -1 : 1);
 
     setIsPending(true);
     setLiked(!previousLiked);
-    setCount(previousCount + (previousLiked ? -1 : 1));
+    onToggled?.(!previousLiked, optimisticCount);
 
     try {
       const response = await fetch(`/api/playlists/${playlistId}/like`, { method: "POST" });
       const result = await parseJsonResponse<ToggleLikeResponse>(response);
       setLiked(result.liked);
-      setCount(result.count);
+      onToggled?.(result.liked, result.count);
     } catch {
       setLiked(previousLiked);
-      setCount(previousCount);
+      onToggled?.(previousLiked, previousCount);
     } finally {
       setIsPending(false);
     }
   }
 
-  if (variant === "minimal") {
-    return (
-      <button
-        type="button"
-        onClick={handleClick}
-        disabled={isPending}
-        className={cn(
-          "inline-flex shrink-0 items-center gap-1 font-pixel text-xs tabular-nums transition-colors",
-          liked ? "text-primary" : "text-muted-foreground hover:text-foreground",
-        )}
-      >
-        <Heart className={cn("size-3.5", liked && "fill-current")} />
-        {count}
-      </button>
-    );
-  }
-
   return (
-    <Button
-      type="button"
-      variant={liked ? "default" : "outline"}
-      size="sm"
-      onClick={handleClick}
-      disabled={isPending}
-      className="shrink-0 font-pixel tabular-nums"
-    >
-      <Heart className={cn("size-4", liked && "fill-current")} />
-      {count}
-    </Button>
+    <button type="button" onClick={handleClick} disabled={isPending} aria-label="좋아요" aria-pressed={liked}>
+      <PixelIcon name="icon-heart" size={22} color={liked ? ACTIVE : INACTIVE} />
+    </button>
   );
 }

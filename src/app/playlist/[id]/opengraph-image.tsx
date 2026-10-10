@@ -8,7 +8,7 @@ export const alt = "PLLS 플레이리스트";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-// Intrinsic ratio of public/brand/p-symbol.png (see BrandMark) — read once
+// Intrinsic ratio of public/brand/p-symbol.png — read once
 // as a base64 data URI since Satori (next/og's renderer) can't resolve a
 // relative /brand/... path.
 const P_SYMBOL_RATIO = 780 / 623;
